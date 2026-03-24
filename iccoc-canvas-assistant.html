@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ICCOC Canvas Assistant</title>
+
+<!-- ============================================================
+     ICCOC CANVAS ASSISTANT
+     Built for: Iowa Community College Online Consortium (ICCOC)
+     Purpose:   Help instructors, students, and admins navigate
+                the Canvas LMS without contacting support for
+                every little question.
+     Powered by: Claude AI (Anthropic) — model: claude-haiku
+
+     ── HOW TO USE THIS FILE ────────────────────────────────────
+     1. Open this file in any browser (double-click it)
+     2. Enter your Anthropic API key in the yellow banner
+     3. Select a role (Instructor / Student / Admin)
+     4. Start asking questions about Canvas!
+
+     ── HOW TO EDIT THIS FILE ───────────────────────────────────
+     1. Right-click the file > "Open with" > Notepad (Windows)
+        or TextEdit (Mac)
+     2. Use Ctrl+F (Find) to jump to any labeled section
+     3. Make your changes and Save
+     4. Refresh the browser — changes are instant
+
+     ── KEY SECTIONS (search these labels with Ctrl+F) ──────────
+     • STYLES SECTION       → Colors, fonts, layout
+     • HTML STRUCTURE       → Visible page elements
+     • KNOWLEDGE BASE START → *** Canvas content the bot knows ***
+     • KNOWLEDGE BASE END   → End of Canvas content
+     • SYSTEM PROMPT        → How the AI behaves
+     • ROLE CHIPS           → Quick-question buttons per role
+     • APP FUNCTIONS        → JavaScript logic (advanced)
+     ============================================================ -->
+
+
+<!-- ============================================================
+     STYLES SECTION — START
+     Controls how the entire app looks.
+     To rebrand: change the color values inside :root {}
+     ============================================================ -->
+<style>
+
+  /* Reset default browser spacing on all elements */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── COLOR & SPACING TOKENS ───────────────────────────────────
+     Change these values to match ICCOC's official brand colors.
+     --blue is the primary color used on buttons, active states, etc.
+     ──────────────────────────────────────────────────────────── */
+  :root {
+    --blue:        #185FA5;          /* Primary brand color              */
+    --blue-light:  #E6F1FB;          /* Light blue (bot avatar bg)       */
+    --blue-border: #B5D4F4;          /* Border for bot avatar            */
+    --green:       #1D9E75;          /* Online status indicator          */
+    --text:        #1a1a1a;          /* Main text color                  */
+    --text-muted:  #6b7280;          /* Secondary label text             */
+    --text-hint:   #9ca3af;          /* Placeholder / hint text          */
+    --bg:          #ffffff;          /* Main background (white)          */
+    --bg-surface:  #f9fafb;          /* Slightly off-white (bot bubbles) */
+    --bg-input:    #f3f4f6;          /* Input field background           */
+    --border:      rgba(0,0,0,0.10); /* Subtle border                    */
+    --border-med:  rgba(0,0,0,0.18); /* Medium border (inputs, chips)    */
+    --radius:      12px;             /* Default corner rounding          */
+    --radius-sm:   8px;              /* Small corner rounding            */
+  }
+
+  /* Page background and centering */
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0f4f8;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  /* Main app card (holds everything) */
+  .shell {
+    width: 100%;
+    max-width: 780px;
+    background: var(--bg);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    height: 92vh;
+    max-height: 820px;
+    overflow: hidden;
+  }
+
+  /* Header bar (logo + title + status) */
+  .header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg);
+  }
+
+  .logo {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo svg { width: 20px; height: 20px; }
+
+  .header-info h1 { font-size: 15px; font-weight: 600; color: var(--text); }
+  .header-info p  { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+
+  .status {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11.5px; color: var(--text-muted);
+  }
+
+  /* Green = online/ready. Turns red if no API key is saved. */
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+  /* Yellow API key banner — hidden after key is entered */
+  .api-banner {
+    padding: 10px 20px;
+    background: #fffbeb;
+    border-bottom: 1px solid #fde68a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    color: #92400e;
+  }
+
+  .api-banner input {
+    flex: 1;
+    padding: 5px 10px;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    font-size: 12px;
+    outline: none;
+    background: #fff;
+    color: var(--text);
+    font-family: monospace;
+  }
+
+  .api-banner input:focus { border-color: var(--blue); }
+
+  .api-banner button {
+    padding: 5px 12px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* Role selector bar (Instructor / Student / Admin) */
+  .role-bar {
+    padding: 9px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .role-label { font-size: 12px; color: var(--text-muted); }
+
+  .role-btn {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-med);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .role-btn:hover { background: var(--bg-surface); color: var(--text); }
+
+  /* Highlighted/selected role */
+  .role-btn.active {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+
+  /* Scrollable chat messages area */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+  }
+
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 2px; }
+
+  /* Individual message row */
+  .msg { display: flex; gap: 10px; align-items: flex-start; }
+  .msg.user { flex-direction: row-reverse; } /* User messages on the right */
+
+  /* Circular avatar (IC = bot, You = user) */
+  .av {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10.5px; font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .av.bot { background: var(--blue-light); color: var(--blue); border: 1px solid var(--blue-border); }
+  .av.usr { background: var(--bg-input);   color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* Message bubble */
+  .bubble {
+    max-width: 78%;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+
+  /* Bot bubble — light gray, left side */
+  .msg.bot .bubble {
+    background: var(--bg-surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px 12px 12px 12px;
+  }
+
+  /* User bubble — blue, right side */
+  .msg.user .bubble {
+    background: var(--blue);
+    color: white;
+    border-radius: 12px 4px 12px 12px;
+  }
+
+  .bubble p { margin-bottom: 6px; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .bubble ol, .bubble ul { padding-left: 18px; margin: 6px 0; }
+  .bubble li { margin-bottom: 4px; }
+  .bubble strong { font-weight: 600; }
+
+  /* Suggested question chip buttons */
+  .chips {
+    padding: 4px 20px 10px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    font-size: 12px;
+    font-family: inherit;
+    padding: 5px 11px;
+    border-radius: 20px;
+    border: 1px solid var(--border-med);
+    background: var(--bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .chip:hover { background: var(--bg-surface); color: var(--text); border-color: var(--blue); }
+
+  /* Text input row */
+  .input-row {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .input-row textarea {
+    flex: 1;
+    font-family: inherit;
+    font-size: 13.5px;
+    padding: 9px 13px;
+    border: 1px solid var(--border-med);
+    border-radius: 10px;
+    resize: none;
+    outline: none;
+    background: var(--bg-input);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 40px;
+    max-height: 110px;
+    transition: border-color 0.15s;
+  }
+
+  .input-row textarea:focus { border-color: var(--blue); background: var(--bg); }
+  .input-row textarea::placeholder { color: var(--text-hint); }
+
+  /* Blue send button */
+  .send-btn {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: var(--blue);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .send-btn:hover  { opacity: 0.88; }
+  .send-btn:active { transform: scale(0.96); }
+  .send-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+  .send-btn svg { width: 16px; height: 16px; }
+
+  /* Animated typing dots (shown while bot is responding) */
+  .typing { display: flex; gap: 4px; align-items: center; padding: 2px 0; }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-hint);
+    animation: bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%,80%,100% { transform: translateY(0); opacity: .4; }
+    40%          { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* Footer branding strip */
+  .footer {
+    padding: 8px 20px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-hint);
+    border-top: 1px solid var(--border);
+  }
+
+</style>
+<!-- ============================================================
+     STYLES SECTION — END
+     ============================================================ -->
+
+</head>
+<body>
+
+
+<!-- ============================================================
+     HTML STRUCTURE — START
+     These are the visible parts of the page.
+     Each block is labeled so you can find and edit it easily.
+     ============================================================ -->
+
+<div class="shell">
+
+  <!-- ── HEADER ──────────────────────────────────────────────────
+       Contains: app logo icon, title, subtitle, online status dot
+       To change the app name: edit the <h1> text below
+       ─────────────────────────────────────────────────────────── -->
+  <div class="header">
+    <div class="logo">
+      <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 2L3 6v8l7 4 7-4V6L10 2z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M10 2v12M3 6l7 4 7-4" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="header-info">
+      <h1>ICCOC Canvas Assistant</h1>                        <!-- APP TITLE: change here -->
+      <p>Iowa Community College Online Consortium</p>        <!-- SUBTITLE: change here -->
+    </div>
+    <div class="status">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusText">Ready</span>
+    </div>
+  </div>
+  <!-- ── END HEADER ── -->
+
+
+  <!-- ── API KEY BANNER ──────────────────────────────────────────
+       Shown at the top until the user enters their Anthropic API key.
+       Once saved, it hides itself. Key is stored privately in the browser.
+       ─────────────────────────────────────────────────────────── -->
+  <div class="api-banner" id="apiBanner">
+    <span>🔑 Enter your Anthropic API key to activate:</span>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-..." />
+    <button onclick="saveKey()">Save</button>
+  </div>
+  <!-- ── END API KEY BANNER ── -->
+
+
+  <!-- ── ROLE SELECTOR ───────────────────────────────────────────
+       Switches the bot's focus and the quick-question chip suggestions.
+       To add a new role: add a button here AND a matching entry in ROLE_CHIPS (in JS below)
+       ─────────────────────────────────────────────────────────── -->
+  <div class="role-bar">
+    <span class="role-label">I am a:</span>
+    <button class="role-btn active" onclick="setRole('instructor', this)">Instructor</button>
+    <button class="role-btn"        onclick="setRole('student', this)">Student</button>
+    <button class="role-btn"        onclick="setRole('admin', this)">Admin</button>
+  </div>
+  <!-- ── END ROLE SELECTOR ── -->
+
+
+  <!-- ── MESSAGES AREA ───────────────────────────────────────────
+       Chat messages are injected here dynamically by JavaScript.
+       The first message below is the bot's opening/welcome message.
+       To change the welcome message: edit the text inside .bubble below.
+       ─────────────────────────────────────────────────────────── -->
+  <div class="messages" id="messages">
+
+    <!-- Bot's opening welcome message -->
+    <div class="msg bot">
+      <div class="av bot">IC</div>
+      <div class="bubble">
+        <p>Hi there! I'm your <strong>ICCOC Canvas Assistant</strong>. I can help instructors, students, and admins navigate Canvas — step by step.</p>
+        <p>Select your role above, then ask me anything about Canvas!</p>
+      </div>
+    </div>
+
+  </div>
+  <!-- ── END MESSAGES AREA ── -->
+
+
+  <!-- ── QUICK-QUESTION CHIPS ────────────────────────────────────
+       These suggestion buttons change when the user switches roles.
+       The actual questions are defined in the ROLE_CHIPS object in JavaScript below.
+       ─────────────────────────────────────────────────────────── -->
+  <div class="chips" id="chips">
+    <!-- Default chips for Instructor role (matches ROLE_CHIPS.instructor) -->
+    <button class="chip" onclick="useChip(this)">Where do I create announcements?</button>
+    <button class="chip" onclick="useChip(this)">How do I set up a quiz?</button>
+    <button class="chip" onclick="useChip(this)">How do I build my syllabus?</button>
+    <button class="chip" onclick="useChip(this)">Where is the gradebook?</button>
+    <button class="chip" onclick="useChip(this)">How do I add content to a module?</button>
+  </div>
+  <!-- ── END CHIPS ── -->
+
+
+  <!-- ── MESSAGE INPUT ───────────────────────────────────────────
+       The text box where users type their questions.
+       Enter key sends. Shift+Enter adds a new line.
+       ─────────────────────────────────────────────────────────── -->
+  <div class="input-row">
+    <textarea
+      id="userInput"
+      placeholder="Ask anything about Canvas…"
+      rows="1"
+      onkeydown="handleKey(event)"
+      oninput="autoResize(this)">
+    </textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+      <svg viewBox="0 0 16 16" fill="none">
+        <path d="M14 8L2 2l2.5 6L2 14l12-6z" fill="white"/>
+      </svg>
+    </button>
+  </div>
+  <!-- ── END MESSAGE INPUT ── -->
+
+
+  <!-- ── FOOTER ──────────────────────────────────────────────────
+       Branding line at the very bottom.
+       To change the text: edit the line below.
+       ─────────────────────────────────────────────────────────── -->
+  <div class="footer">
+    ICCOC Canvas Assistant &middot; Powered by McRay from NCC   <!-- FOOTER TEXT: change here -->
+  </div>
+  <!-- ── END FOOTER ── -->
+
+</div>
+
+<!-- ============================================================
+     HTML STRUCTURE — END
+     ============================================================ -->
+
+
+<!-- ============================================================
+     JAVASCRIPT SECTION — START
+     This is the brain of the app. It handles:
+     - Saving/loading the API key
+     - Role switching
+     - Sending messages to the Claude AI
+     - Displaying responses in the chat
+     ============================================================ -->
+<script>
+
+/* ================================================================
+   STATE VARIABLES
+   Track the app's current condition at any moment.
+   ================================================================ */
+
+let apiKey = localStorage.getItem('iccoc_api_key') || '';
+// Loads a previously saved key from the browser. Empty string if none.
+
+let role = 'instructor';
+// Tracks the currently selected role: 'instructor', 'student', or 'admin'
+
+let history = [];
+// Stores the full conversation so the bot can reference earlier messages
+
+let busy = false;
+// Prevents sending a new message while the bot is still generating a response
+
+
+/* ================================================================
+   ████████████████████████████████████████████████████████████████
+
+   KNOWLEDGE BASE — START
+
+   ████████████████████████████████████████████████████████████████
+
+   THIS IS THE MOST IMPORTANT SECTION TO UPDATE.
+
+   Everything inside the backticks below (` ... `) is the content
+   the bot uses to answer Canvas questions.
+
+   ── HOW TO UPDATE WITH ICCOC'S OFFICIAL CANVAS DOCUMENT ────────
+   1. Open this file in Notepad
+   2. Press Ctrl+F and search for: KNOWLEDGE BASE — START
+   3. Scroll down until you see: const CANVAS_KNOWLEDGE = `
+   4. Delete everything between the opening and closing backtick
+   5. Paste in the new Canvas documentation provided by ICCOC
+   6. Save the file and refresh the browser — done!
+   ================================================================ */
+
+const CANVAS_KNOWLEDGE = `
+
+=== ABOUT ICCOC ===
+The Iowa Community College Online Consortium (ICCOC) is a partnership of Iowa community colleges
+that share online courses through a shared Canvas LMS platform. Students enrolled at a partner
+college can access a larger variety of online courses and programs.
+
+ICCOC online courses are NOT self-paced — they follow a set schedule each semester.
+
+ICCOC Partner Colleges:
+Tier 1: Eastern Iowa Community College, Iowa Lakes Community College, Northwest Iowa Community
+College, Southeastern Community College, Southwestern Community College, Western Iowa Tech
+Community College.
+Tier 3: North Iowa Area Community College (NIACC)
+
+Canvas Login:
+- Most students log into Canvas through their college's own portal
+- Southwestern Community College students log in directly (not through a portal)
+- For login issues, contact your college Help Desk (see ICCOC HELP DESK CONTACTS below)
+
+=== ICCOC GENERAL CONTACT ===
+For general ICCOC questions, confirming enrollments, checking course offerings, or being
+directed to the right department:
+- Contact: Tracy Sleep, Associate Director
+- Email: tsleep@myiccoc.org
+- Phone: 319-759-0497
+
+ICCOC Staff:
+- Theresa Umscheid, Executive Director: tumscheid@myiccoc.org | 712-362-7948
+- Chuck Chrisman, Director of Technology Services: cchrisman@scciowa.edu | 866-722-4692 ext. 5070
+- Marni Kelso, Course Management: mkelso@myiccoc.org | 641-631-0690 (M-F 7AM-4PM)
+- Doug Sutton, Coordinator of Online Resources: dsutton@myiccoc.org | 712-362-7987
+- Kelly Maxwell, Instructional Designer & Lead Trainer: kmaxwell@myiccoc.org | 641-278-6304
+
+=== ICCOC HELP DESK CONTACTS (Per College) ===
+Each partner college has its own Help Desk for technical issues — logging into Canvas,
+accessing courses, college portal issues, and campus email.
+
+Eastern Iowa Community College:
+- Phone: 563-336-3456
+- Email: helpdesk@eicc.edu
+
+Iowa Lakes Community College:
+- Phone: 800-242-5106 ext. 8383
+- Email: helpdesk@iowalakes.edu
+
+Northwest Iowa Community College:
+- Contact: Sarah Fykstra
+- Phone: 800-352-4907 ext. 262
+- Email: sfykstra@nwicc.edu
+
+Southeastern Community College:
+- Phone: 319-208-5087
+- Email: helpdesk@scciowa.edu
+
+Southwestern Community College:
+- Contact: Doug Greene
+- Phone: 641-782-1324
+- Email: greene@swcciowa.edu
+
+Western Iowa Tech Community College:
+- Phone: 712-274-8733 ext. 1461
+- Email: helpdesk@witcc.edu
+- Note: Students in non-credit courses contact Lynn Konz at lynn.konz@witcc.edu
+
+=== CANVAS SUPPORT (24/7) ===
+Canvas Support is available 24 hours a day, 7 days a week, 365 days a year.
+It handles technical issues WITHIN Canvas — error messages, exam issues, etc.
+
+To access Canvas Support:
+1. Log into Canvas
+2. Click the Help icon on the left-hand Global Navigation menu
+3. Select Canvas Support
+
+Canvas Support Hotline: 844-214-6951
+
+Note: For login issues or portal access problems, contact your college Help Desk instead
+(Canvas Support only handles issues once you are inside Canvas).
+
+=== CANVAS NAVIGATION ===
+Canvas has a left-side Global Navigation menu with icons for:
+Dashboard, Courses, Calendar, Inbox, History, Help, and Account/Profile.
+Inside each course, there is a Course Navigation menu on the left with links
+specific to that course.
+
+=== ANNOUNCEMENTS (Instructors) ===
+Location: Course Navigation (left sidebar) > Announcements
+What it does: Allows instructors to broadcast information to all students or sections.
+Students are notified automatically based on their notification settings.
+
+To create an announcement:
+1. Click "Announcements" in the Course Navigation
+2. Click "+ Announcement" (top right)
+3. Add a Title
+4. Write your content in the Rich Content Editor
+5. Optional: schedule a delayed post, allow replies, enable podcast feed, allow liking
+6. Click "Save" to publish immediately, or save as a draft
+
+Students can reply to announcements if the instructor allows it.
+Replies do NOT appear in the Inbox — they stay within the Announcement.
+Admins can create global announcements for all colleges account-wide.
+
+=== ASSIGNMENTS (Instructors) ===
+Location: Course Navigation > Assignments
+
+To create an assignment:
+1. Click "Assignments" in Course Navigation
+2. Click "+ Assignment" (top right)
+3. Fill in: Title, Instructions, Points possible
+4. Set Submission Type:
+   - Online: text entry, file upload, media recording, URL
+   - On Paper
+   - No Submission
+   - External Tool (LTI)
+5. Set Due Date, Available From, and Until dates
+6. Click "Save & Publish" to make it live, or "Save" as a draft
+
+ICCOC Assessment strategies instructors may use:
+Pre-test/Post-test, Written Assignments, Threaded Discussions, Individual Projects,
+Group Projects, Exams, Student Portfolios, Research Papers, Student Media Projects
+
+=== QUIZZES — Classic (Instructors) ===
+Location: Course Navigation > Quizzes
+
+To create a classic quiz:
+1. Click "Quizzes" in Course Navigation
+2. Click "+ Quiz"
+3. Settings tab: set Title, Quiz Type (Graded Quiz / Practice Quiz / Graded Survey),
+   time limit, number of allowed attempts, shuffle answers option
+4. Questions tab: Click "+ New Question" and choose type:
+   Multiple Choice, True/False, Short Answer, Essay, Matching,
+   Fill-in-the-Blank, File Upload
+5. Click "Save & Publish" when ready
+
+Proctoring Note: Some ICCOC instructors require quizzes/exams to be proctored.
+If required, the instructor will state this in the syllabus.
+ICCOC uses Honorlock for remote proctoring (fully online courses only).
+For Honorlock info contact Kelly Maxwell at kmaxwell@myiccoc.org or visit honorlock.com
+
+=== QUIZZES — New Quizzes (Instructors) ===
+Location: Course Navigation > Quizzes > click "+ Quiz" > select "New Quizzes" engine
+- Opens in a separate builder interface
+- Supports additional types: Stimulus, Categorization, Ordering, Hot Spot questions
+
+=== GRADEBOOK (Instructors) ===
+Location: Course Navigation > Grades
+- Spreadsheet view: students in rows, assignments in columns
+- To enter a grade manually: Click the cell > type grade > press Enter
+- To leave a comment: Click the cell > click the speech bubble icon
+- Filters: Click "View" menu to filter by student group, grading period, or module
+- To download grades: Actions > Export > CSV
+- Late Policy settings: View > Late Policies
+
+=== SPEEDGRADER (Instructors) ===
+Access from Assignments: Click assignment name > "SpeedGrader" link (top right)
+Access from Gradebook: Click a grade cell > SpeedGrader icon
+Features: View student submissions, add text/media comments, annotate documents,
+apply rubric scores, assign final grade
+
+=== MODULES (Instructors) ===
+Location: Course Navigation > Modules
+
+To create a module:
+1. Click "+ Module" (top right)
+2. Give it a name and click "Add Module"
+
+To add content to a module:
+1. Click the "+" icon on the right side of the module row
+2. Choose item type: Assignment, Quiz, File, Page, Discussion,
+   External URL, External Tool, or Text Header
+3. Click "Add Item"
+
+Additional options:
+- Drag items to reorder within or between modules
+- Set Prerequisites (must complete module X before accessing this one)
+- Set Completion Requirements per item (must view, must submit, must score X)
+- Publish/unpublish individual items or entire modules
+
+=== PAGES / CONTENT PAGES (Instructors) ===
+Location: Course Navigation > Pages
+
+To create a page:
+1. Click "+ Page" (top right)
+2. Give the page a title
+3. Use the Rich Content Editor to add text, images, videos, links, tables
+4. Can embed: YouTube, Vimeo, Google Docs, and other media
+5. Click "Save & Publish"
+
+To set a page as the Course Home/Front Page:
+- Click the 3-dot menu next to the page > "Set as Front Page"
+- Then go to Course Home > "Choose Home Page" > select "Pages Front Page"
+
+=== SYLLABUS & WELCOME PAGE (Instructors) ===
+Location: Course Navigation > Syllabus
+
+The Syllabus page has two parts:
+1. Syllabus Description (top) — editable area you control
+2. Course Summary (bottom) — auto-generated from all assignments and events
+
+To edit the syllabus:
+1. Click "Edit" (top right of Syllabus page)
+2. Use the Rich Content Editor to add content
+3. Best practices:
+   - Upload your syllabus PDF and embed it using Insert > Document
+   - OR type/paste content directly into the editor
+   - Include: welcome message, course policies, instructor contact info,
+     ICCOC Student Ethics & User Agreement reference
+
+ICCOC Requirement: All courses must include the ICCOC Student Ethics & Usage Statement.
+Include a Netiquette Statement in your syllabus with examples of proper/improper behavior.
+All textbook info must match what is listed on the ICCOC website and in Simple Syllabus.
+
+=== SIMPLE SYLLABUS (ICCOC-Specific) ===
+ICCOC uses Simple Syllabus for official course syllabus management.
+All faculty must ensure their course is updated to the current textbook each semester.
+The textbook listed in Simple Syllabus must match what is on the ICCOC website.
+For textbook questions: visit myiccoc.org/textbook-info
+
+=== DISCUSSIONS (Instructors) ===
+Location: Course Navigation > Discussions
+
+To create a discussion:
+1. Click "+ Discussion"
+2. Set: Title, description/prompt
+3. Options: Graded or ungraded, threaded or focused replies,
+   allow liking, require initial post before seeing peers, available dates
+4. Click "Save & Publish"
+
+=== FILES (Instructors) ===
+Location: Course Navigation > Files
+- Upload files: Click "Upload" or drag & drop
+- Create folders: Click "+ Folder"
+- Share a file: Click the file > copy preview or download link
+- Files here can be linked from Pages, Assignments, and Announcements
+
+=== PEOPLE / ROSTER (Instructors) ===
+Location: Course Navigation > People
+- View all enrolled students, TAs, observers, teachers
+- To add a user manually: Click "+ People" > enter email or Canvas login ID >
+  choose role > Add to Course
+
+=== INBOX / MESSAGING (All Users) ===
+Location: Global Navigation (left sidebar) > Inbox icon (envelope)
+
+To send a message:
+1. Click the pencil/compose icon
+2. Select the Course context
+3. Search for recipient(s)
+   - Instructors: select the course name to message ALL students at once
+4. Write message > click Send
+- Supports file attachments and media messages
+
+=== COURSE SETTINGS (Instructors) ===
+Location: Course Navigation > Settings
+Tabs: Course Details, Sections, Navigation, Apps (LTI), Feature Options, Notifications
+- To show/hide or reorder navigation items:
+  Settings > Navigation tab > drag items between Enabled and Disabled sections
+
+=== CALENDAR ===
+Location: Global Navigation > Calendar icon
+- Color-coded by course
+- Shows all assignment due dates and course events
+- Click any event to see details or go directly to the assignment
+
+=== FOR STUDENTS ===
+
+Getting Enrolled:
+- Select one of the ICCOC partner colleges offering the course you want
+- Apply for admission at that college (your "home college")
+- Register through your home college's student portal
+- ICCOC courses are NOT self-paced — they follow a set semester schedule
+
+Logging into Canvas:
+- Log in through your college portal (most colleges)
+- Southwestern Community College students log in directly to Canvas
+- For login issues: contact your college Help Desk (see ICCOC HELP DESK CONTACTS)
+
+Submitting an Assignment:
+1. Go to Course Navigation > Assignments
+2. Click the assignment name
+3. Click "Submit Assignment" (top right)
+4. Choose submission type: file upload, text entry, URL, or media recording
+5. Upload your file or type your content
+6. Click "Submit Assignment"
+A confirmation screen shows your submission timestamp — save this as proof.
+
+Viewing Grades:
+- Location: Course Navigation > Grades
+- Shows all assignments, scores, due dates, and instructor comments
+- Click any assignment row to see detailed feedback and rubric scores
+
+Viewing Announcements:
+- Location: Course Navigation > Announcements
+- Also visible on the Dashboard under "Recent Activity"
+
+Messaging your Instructor:
+1. Global Navigation > Inbox
+2. Click compose icon (pencil)
+3. Select the Course
+4. Search for your instructor's name
+5. Write and send your message
+
+Online Tutoring (Brainfuse) — FREE for ICCOC Students:
+Students in fully online, hybrid, or eCompanion courses get 15 hours of free tutoring
+per academic year (August through July) through Brainfuse.
+- Access: Click the "Online Tutoring" or "Brainfuse" link in your Canvas course navigation
+- Available 24/7/365
+- Services: Live tutoring, writing review, Q&A, SkillSurfer, Flashbulb, Language Lab,
+  LEAP, Meet, Brainwave
+- Brainfuse technical support: support@brainfuse.com
+
+Library Services:
+- Every ICCOC online course has a Library Services link in the course navigation
+- Provides access to journal articles, full-text books, reports, newspapers
+- Your home college library staff can also assist you directly
+
+Proctored Exams:
+- Some instructors require exams to be proctored
+- The instructor will state this requirement in the syllabus
+- Options: physical testing center at a partner college, or Honorlock (remote proctoring)
+- For physical testing center contacts: myiccoc.org/proctors-and-testing-sites
+
+Academic Accommodations:
+- Students needing accommodations must have a Student Accommodations Plan at their home college
+- Each college has its own process and documentation requirements
+- Contact your home college's student services office to start this process
+- More info: myiccoc.org/academic-accommodations
+
+Concerns About Your Instructor:
+1. First: Communicate directly with your instructor to resolve the issue
+2. If unresolved: Contact the Dean or Director of Distance Learning at your HOME college
+3. They will then contact the instructor or the instructor's college
+
+=== FACULTY TRAINING & RESOURCES (Instructors) ===
+ICCOC provides training through:
+- Monthly Webinars (Next Up at Noon Lunch & Learns)
+- Weekly Newsletters
+- Annual Spring Conference
+- Mentor Trainer support at each college
+
+Lead Trainer / Instructional Designer: Kelly Maxwell
+Email: kmaxwell@myiccoc.org | Phone: 641-278-6304
+
+Course Development Resource in Canvas (most up-to-date training info):
+https://iowacconline.instructure.com/courses/73391
+
+Canvas Guides (official): https://community.canvaslms.com/t5/Canvas-Guides/ct-p/canvas_guides
+
+Course Design Requirements:
+- All ICCOC courses must meet set quality standards
+- Review the Course Quality Checklist in the Course Development Resource
+- Courses must be ADA compliant — see Accessibility resources in the Faculty Center
+- Copyright: Unlawful reproduction of copyrighted material is prohibited in all ICCOC classes
+  Instructors must obtain proper permission for all copyrighted material
+
+=== FOR ADMINS ===
+
+Adding a User to Canvas:
+- Admin (left nav) > your institution name > People > "+ People"
+- Enter email or SIS ID > assign role (Student, Teacher, TA, Observer, Designer) > Add User
+
+Creating a New Course:
+- Admin > your institution > Courses > "+ Add New Course"
+- Enter: Course Name, Reference Code, Enrollment Term, Default Timezone
+
+Bulk Enrollment via SIS Import:
+- Admin > SIS Import
+- Upload CSV file per Canvas SIS import spec
+- Supported files: courses.csv, users.csv, enrollments.csv, sections.csv
+
+Viewing All Courses:
+- Admin > Courses (search by name or filter by term, published/unpublished state)
+
+Account-Level Settings:
+- Admin > Settings
+- Configure: Authentication, feature flags, notifications, branding, integrations
+
+Adding an LTI / External App:
+- Admin > Settings > Apps tab > "+ App"
+- Or course level: Course Settings > Apps > "+ App"
+
+Feature Options:
+- Admin > Settings > Feature Options tab
+- Toggle features: New Quizzes, Module enhancements, etc.
+
+ICCOC Technology Director for Admin issues:
+Chuck Chrisman | cchrisman@scciowa.edu | 866-722-4692 ext. 5070
+
+=== GENERAL TIPS (All Users) ===
+- Canvas auto-saves drafts in the Rich Content Editor
+- Dashboard shows all active courses as cards — click a card to enter
+- If a menu item is missing from Course Navigation: Settings > Navigation to enable it
+- Canvas mobile app (iOS & Android) uses the same login credentials
+- Customize notifications: Account (top-left Global Nav) > Notifications
+- Browser requirements: modern browsers recommended (Chrome, Firefox, Edge, Safari)
+  For details: community.canvaslms.com browser requirements page
+- Canvas Support Hotline (24/7): 844-214-6951
+- General ICCOC questions: Tracy Sleep at tsleep@myiccoc.org | 319-759-0497
+
+`;
+
+/* ================================================================
+   ████████████████████████████████████████████████████████████████
+
+   KNOWLEDGE BASE — END
+
+   ████████████████████████████████████████████████████████████████
+   ================================================================ */
+
+
+/* ================================================================
+   SYSTEM PROMPT — START
+   ════════════════════════════════════════════════════════════════
+   This tells the AI HOW to behave — tone, rules, and personality.
+   The CANVAS_KNOWLEDGE above is automatically injected into it.
+
+   TO CHANGE THE BOT'S TONE OR RULES:
+   - Edit the text in the backticks below
+   - Example: change "warm, professional" to "formal and concise"
+   - Example: add a specific ICCOC support email or phone number
+
+   ⚠ DO NOT remove ${CANVAS_KNOWLEDGE} — that line is what
+     connects the knowledge base to the AI's instructions.
+   ================================================================ */
+
+const SYSTEM_PROMPT = `You are the ICCOC Canvas Assistant — a knowledgeable, friendly, and patient guide
+for users of Canvas LMS at Iowa Community College Online Consortium (ICCOC) member colleges in Iowa.
+
+You help three types of users: Instructors, Students, and Admins.
+The user's current role is provided at the start of each message as [ROLE: ...].
+Always tailor your answer specifically to that role.
+
+Use ONLY the Canvas knowledge below to answer questions accurately:
+
+${CANVAS_KNOWLEDGE}
+
+RESPONSE RULES:
+- Give numbered, step-by-step directions when explaining how to do something
+- Be concise but complete — never skip important steps
+- Use the exact Canvas menu names and button labels as they appear in Canvas
+- Keep a warm, professional, and encouraging tone at all times
+- If a question falls outside this knowledge base, say so honestly
+  and suggest the user contact ICCOC support directly
+- Never make up features or locations you are not certain about`;
+
+/* ================================================================
+   SYSTEM PROMPT — END
+   ================================================================ */
+
+
+/* ================================================================
+   ROLE CHIPS — START
+   ════════════════════════════════════════════════════════════════
+   These are the suggested question buttons shown below the chat.
+   They update automatically when the user switches roles.
+
+   TO ADD, REMOVE, OR EDIT A CHIP:
+   - Find the role you want to update below (instructor/student/admin)
+   - Add or change a string in that role's array
+   - Keep text short — these display as small clickable buttons
+   - Each role can have as many chips as you like
+   ================================================================ */
+
+const ROLE_CHIPS = {
+
+  /* Suggested questions for Instructors */
+  instructor: [
+    'Where do I create announcements?',
+    'How do I set up a quiz?',
+    'How do I build my syllabus?',
+    'Where is the gradebook?',
+    'How do I add content to a module?'
+  ],
+
+  /* Suggested questions for Students */
+  student: [
+    'How do I submit an assignment?',
+    'Where do I see my grades?',
+    'How do I message my instructor?',
+    'Where are course announcements?',
+    'How do I join a course?'
+  ],
+
+  /* Suggested questions for Admins */
+  admin: [
+    'How do I add a user to Canvas?',
+    'How do I create a new course?',
+    'How do I do a bulk enrollment?',
+    'Where are account-level settings?',
+    'How do I add an LTI tool?'
+  ]
+
+};
+
+/* ================================================================
+   ROLE CHIPS — END
+   ================================================================ */
+
+
+/* ================================================================
+   APP FUNCTIONS — START
+   ════════════════════════════════════════════════════════════════
+   The functions below power all the interactive behavior.
+   You generally do NOT need to edit anything below this line
+   unless you are a developer making structural changes.
+   ================================================================ */
+
+/* On page load: check if an API key is already saved in the browser */
+window.addEventListener('DOMContentLoaded', () => {
+  if (apiKey) {
+    document.getElementById('apiBanner').style.display = 'none';
+    setStatus(true);
+  }
+});
+
+/* Save the API key to browser storage when the user clicks "Save" */
+function saveKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+
+  if (!val.startsWith('sk-')) {
+    alert('Please enter a valid Anthropic API key starting with sk-ant-...');
+    return;
+  }
+
+  apiKey = val;
+  localStorage.setItem('iccoc_api_key', apiKey);
+  document.getElementById('apiBanner').style.display = 'none';
+  setStatus(true);
+  addBotMsg("API key saved! I'm ready to help you navigate Canvas. What would you like to know?");
+}
+
+/* Update the status dot and label (green = online, red = no key) */
+function setStatus(online) {
+  document.getElementById('statusDot').style.background = online ? '#1D9E75' : '#E24B4A';
+  document.getElementById('statusText').textContent     = online ? 'Online'  : 'No API key';
+}
+
+/* Switch the active role and update the chip buttons */
+function setRole(r, btn) {
+  role = r;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const chipsEl = document.getElementById('chips');
+  chipsEl.style.display = 'flex';
+  chipsEl.innerHTML = ROLE_CHIPS[r]
+    .map(c => `<button class="chip" onclick="useChip(this)">${c}</button>`)
+    .join('');
+}
+
+/* When a chip is clicked: fill the input box and send it */
+function useChip(btn) {
+  document.getElementById('userInput').value = btn.textContent;
+  document.getElementById('chips').style.display = 'none';
+  sendMessage();
+}
+
+/* Grow the textarea height automatically as the user types */
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+}
+
+/* Send on Enter key press (Shift+Enter = new line) */
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+/* Scroll the chat to the most recent message */
+function scrollBottom() {
+  const m = document.getElementById('messages');
+  m.scrollTop = m.scrollHeight;
+}
+
+/* Add a bot message bubble to the chat */
+function addBotMsg(html) {
+  const m = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.className = 'msg bot';
+  d.innerHTML = `<div class="av bot">IC</div><div class="bubble">${html}</div>`;
+  m.appendChild(d);
+  scrollBottom();
+}
+
+/* Add a user message bubble to the chat */
+function addUserMsg(text) {
+  const m = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.className = 'msg user';
+  d.innerHTML = `<div class="av usr">You</div><div class="bubble">${escHtml(text)}</div>`;
+  m.appendChild(d);
+  scrollBottom();
+}
+
+/* Escape special HTML characters to prevent display bugs */
+function escHtml(t) {
+  return t
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* Show animated typing dots while waiting for the AI response */
+function showTyping() {
+  const m = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.id = 'typing';
+  d.className = 'msg bot';
+  d.innerHTML = '<div class="av bot">IC</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  m.appendChild(d);
+  scrollBottom();
+}
+
+/* Remove the typing indicator once the response arrives */
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+/* Convert the AI's markdown-style text into formatted HTML
+   Handles: **bold**, *italic*, numbered lists (1. 2. 3.), bullets (- )  */
+function formatReply(text) {
+  text = text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+  const lines = text.split('\n');
+  let html = '', inOl = false, inUl = false;
+
+  for (let line of lines) {
+    const ol = line.match(/^\d+\.\s+(.*)/);  /* Numbered:  1. step */
+    const ul = line.match(/^[-•]\s+(.*)/);   /* Bullet:    - item  */
+
+    if (ol) {
+      if (!inOl) { if (inUl) { html += '</ul>'; inUl = false; } html += '<ol>'; inOl = true; }
+      html += `<li>${ol[1]}</li>`;
+    } else if (ul) {
+      if (!inUl) { if (inOl) { html += '</ol>'; inOl = false; } html += '<ul>'; inUl = true; }
+      html += `<li>${ul[1]}</li>`;
+    } else {
+      if (inOl) { html += '</ol>'; inOl = false; }
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (line.trim()) html += `<p>${line}</p>`;
+    }
+  }
+
+  if (inOl) html += '</ol>';
+  if (inUl) html += '</ul>';
+  return html;
+}
+
+/* ================================================================
+   MAIN SEND FUNCTION
+   Called every time the user sends a message.
+   Flow: validate → call Claude API → display response
+   ================================================================ */
+async function sendMessage() {
+
+  if (busy) return; /* Don't send while already waiting for a reply */
+
+  /* Prompt for API key if not yet entered */
+  if (!apiKey) {
+    addBotMsg('<p>Please enter your Anthropic API key in the banner above to get started.</p>');
+    return;
+  }
+
+  const inp  = document.getElementById('userInput');
+  const text = inp.value.trim();
+  if (!text) return; /* Don't send empty messages */
+
+  /* Clear input and hide chips */
+  inp.value = '';
+  inp.style.height = 'auto';
+  document.getElementById('chips').style.display = 'none';
+
+  /* Lock the UI while processing */
+  busy = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  /* Tag the message with the current role so the AI knows who's asking */
+  const roleLabel  = role.charAt(0).toUpperCase() + role.slice(1);
+  const userContent = `[ROLE: ${roleLabel}]\n${text}`;
+
+  /* Display the message and store it in conversation history */
+  addUserMsg(text);
+  history.push({ role: 'user', content: userContent });
+  showTyping();
+
+  /* ── Call the Claude AI API ── */
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,                                /* Your saved API key     */
+        'anthropic-version': '2023-06-01',                  /* Required API version   */
+        'anthropic-dangerous-direct-browser-access': 'true' /* Allows browser-to-API  */
+      },
+      body: JSON.stringify({
+        model:      'claude-haiku-4-5-20251001', /* Haiku = fastest + most affordable model */
+        max_tokens: 1000,                        /* Maximum response length                 */
+        system:     SYSTEM_PROMPT,               /* Bot instructions + knowledge base       */
+        messages:   history                      /* Full conversation for memory/context    */
+      })
+    });
+
+    /* Handle API-level errors (e.g. wrong key, billing issue) */
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || 'API error');
+    }
+
+    /* Extract the reply text and display it */
+    const data  = await res.json();
+    const reply = data.content.map(c => c.text || '').join('');
+    history.push({ role: 'assistant', content: reply });
+    removeTyping();
+    addBotMsg(formatReply(reply));
+
+  } catch (err) {
+    /* Show a friendly error message if something goes wrong */
+    removeTyping();
+    addBotMsg(`<p><strong>Error:</strong> ${escHtml(err.message)}. Please check your API key or try again.</p>`);
+  }
+
+  /* Unlock the UI */
+  busy = false;
+  document.getElementById('sendBtn').disabled = false;
+  inp.focus();
+}
+
+/* ================================================================
+   APP FUNCTIONS — END
+   ================================================================ */
+
+</script>
+<!-- ============================================================
+     JAVASCRIPT SECTION — END
+     ============================================================ -->
+
+</body>
+</html>
