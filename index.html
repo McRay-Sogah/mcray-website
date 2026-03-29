@@ -5,70 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ICCOC Canvas Assistant</title>
 
-<!-- ============================================================
-     ICCOC CANVAS ASSISTANT
-     Built for: Iowa Community College Online Consortium (ICCOC)
-     Purpose:   Help instructors, students, and admins navigate
-                the Canvas LMS without contacting support for
-                every little question.
-     Powered by: Claude AI (Anthropic) — model: claude-haiku
-
-     ── HOW TO USE THIS FILE ────────────────────────────────────
-     1. Open this file in any browser (double-click it)
-     2. Enter your Anthropic API key in the yellow banner
-     3. Select a role (Instructor / Student / Admin)
-     4. Start asking questions about Canvas!
-
-     ── HOW TO EDIT THIS FILE ───────────────────────────────────
-     1. Right-click the file > "Open with" > Notepad (Windows)
-        or TextEdit (Mac)
-     2. Use Ctrl+F (Find) to jump to any labeled section
-     3. Make your changes and Save
-     4. Refresh the browser — changes are instant
-
-     ── KEY SECTIONS (search these labels with Ctrl+F) ──────────
-     • STYLES SECTION       → Colors, fonts, layout
-     • HTML STRUCTURE       → Visible page elements
-     • KNOWLEDGE BASE START → *** Canvas content the bot knows ***
-     • KNOWLEDGE BASE END   → End of Canvas content
-     • SYSTEM PROMPT        → How the AI behaves
-     • ROLE CHIPS           → Quick-question buttons per role
-     • APP FUNCTIONS        → JavaScript logic (advanced)
-     ============================================================ -->
-
-
-<!-- ============================================================
-     STYLES SECTION — START
-     Controls how the entire app looks.
-     To rebrand: change the color values inside :root {}
-     ============================================================ -->
 <style>
-
-  /* Reset default browser spacing on all elements */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ── COLOR & SPACING TOKENS ───────────────────────────────────
-     Change these values to match ICCOC's official brand colors.
-     --blue is the primary color used on buttons, active states, etc.
-     ──────────────────────────────────────────────────────────── */
   :root {
-    --blue:        #185FA5;          /* Primary brand color              */
-    --blue-light:  #E6F1FB;          /* Light blue (bot avatar bg)       */
-    --blue-border: #B5D4F4;          /* Border for bot avatar            */
-    --green:       #1D9E75;          /* Online status indicator          */
-    --text:        #1a1a1a;          /* Main text color                  */
-    --text-muted:  #6b7280;          /* Secondary label text             */
-    --text-hint:   #9ca3af;          /* Placeholder / hint text          */
-    --bg:          #ffffff;          /* Main background (white)          */
-    --bg-surface:  #f9fafb;          /* Slightly off-white (bot bubbles) */
-    --bg-input:    #f3f4f6;          /* Input field background           */
-    --border:      rgba(0,0,0,0.10); /* Subtle border                    */
-    --border-med:  rgba(0,0,0,0.18); /* Medium border (inputs, chips)    */
-    --radius:      12px;             /* Default corner rounding          */
-    --radius-sm:   8px;              /* Small corner rounding            */
+    --blue:        #185FA5;
+    --blue-light:  #E6F1FB;
+    --blue-border: #B5D4F4;
+    --green:       #1D9E75;
+    --amber:       #854F0B;
+    --amber-bg:    #fffbeb;
+    --amber-border:#fde68a;
+    --red:         #A32D2D;
+    --red-bg:      #FCEBEB;
+    --text:        #1a1a1a;
+    --text-muted:  #6b7280;
+    --text-hint:   #9ca3af;
+    --bg:          #ffffff;
+    --bg-surface:  #f9fafb;
+    --bg-input:    #f3f4f6;
+    --border:      rgba(0,0,0,0.10);
+    --border-med:  rgba(0,0,0,0.18);
+    --radius:      12px;
   }
 
-  /* Page background and centering */
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: #f0f4f8;
@@ -79,10 +39,9 @@
     padding: 16px;
   }
 
-  /* Main app card (holds everything) */
   .shell {
     width: 100%;
-    max-width: 780px;
+    max-width: 800px;
     background: var(--bg);
     border-radius: 16px;
     border: 1px solid var(--border);
@@ -90,11 +49,10 @@
     display: flex;
     flex-direction: column;
     height: 92vh;
-    max-height: 820px;
+    max-height: 860px;
     overflow: hidden;
   }
 
-  /* Header bar (logo + title + status) */
   .header {
     padding: 14px 20px;
     border-bottom: 1px solid var(--border);
@@ -102,102 +60,113 @@
     align-items: center;
     gap: 12px;
     background: var(--bg);
+    flex-shrink: 0;
   }
 
   .logo {
-    width: 38px; height: 38px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
     background: var(--blue);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
   }
 
   .logo svg { width: 20px; height: 20px; }
 
-  .header-info h1 { font-size: 15px; font-weight: 600; color: var(--text); }
-  .header-info p  { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+  .header-info h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .header-info p {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
 
   .status {
     margin-left: auto;
-    display: flex; align-items: center; gap: 6px;
-    font-size: 11.5px; color: var(--text-muted);
-  }
-
-  /* Green = online/ready. Turns red if no API key is saved. */
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
-
-  /* Yellow API key banner — hidden after key is entered */
-  .api-banner {
-    padding: 10px 20px;
-    background: #fffbeb;
-    border-bottom: 1px solid #fde68a;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 12.5px;
-    color: #92400e;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--text-muted);
   }
 
-  .api-banner input {
-    flex: 1;
-    padding: 5px 10px;
-    border: 1px solid #fcd34d;
-    border-radius: 6px;
-    font-size: 12px;
-    outline: none;
-    background: #fff;
-    color: var(--text);
-    font-family: monospace;
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ccc;
   }
 
-  .api-banner input:focus { border-color: var(--blue); }
+  .dot.online  { background: var(--green); }
+  .dot.loading { background: #F59E0B; animation: pulse 1s infinite; }
+  .dot.error   { background: var(--red); }
 
-  .api-banner button {
-    padding: 5px 12px;
-    background: var(--blue);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 12px;
-    cursor: pointer;
-    white-space: nowrap;
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
   }
 
-  /* Role selector bar (Instructor / Student / Admin) */
-  .role-bar {
-    padding: 9px 20px;
-    border-bottom: 1px solid var(--border);
+  .kb-banner {
+    padding: 8px 20px;
+    background: var(--blue-light);
+    border-bottom: 1px solid var(--blue-border);
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 12px;
+    color: #0C447C;
+    flex-shrink: 0;
   }
 
-  .role-label { font-size: 12px; color: var(--text-muted); }
+  .kb-banner.error {
+    background: var(--red-bg);
+    border-color: #F09595;
+    color: var(--red);
+  }
 
-  .role-btn {
+  .kb-banner.hidden { display: none; }
+
+  .context-bar {
+    padding: 9px 20px;
+    border-bottom: 1px solid var(--border);
+    display: none;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+
+  .context-pill {
     font-size: 12px;
-    padding: 4px 12px;
+    padding: 4px 10px;
     border-radius: 20px;
     border: 1px solid var(--border-med);
-    background: transparent;
+    background: var(--bg-surface);
     color: var(--text-muted);
+  }
+
+  .context-change {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--blue-border);
+    background: var(--blue-light);
+    color: var(--blue);
     cursor: pointer;
-    transition: all 0.15s;
     font-family: inherit;
   }
 
-  .role-btn:hover { background: var(--bg-surface); color: var(--text); }
-
-  /* Highlighted/selected role */
-  .role-btn.active {
-    background: var(--blue);
-    color: white;
-    border-color: var(--blue);
-  }
-
-  /* Scrollable chat messages area */
   .messages {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding: 20px;
     display: flex;
@@ -207,34 +176,51 @@
   }
 
   .messages::-webkit-scrollbar { width: 4px; }
-  .messages::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 2px; }
+  .messages::-webkit-scrollbar-thumb {
+    background: var(--border-med);
+    border-radius: 2px;
+  }
 
-  /* Individual message row */
-  .msg { display: flex; gap: 10px; align-items: flex-start; }
-  .msg.user { flex-direction: row-reverse; } /* User messages on the right */
+  .msg {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
 
-  /* Circular avatar (IC = bot, You = user) */
+  .msg.user { flex-direction: row-reverse; }
+
   .av {
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10.5px; font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.5px;
+    font-weight: 600;
     flex-shrink: 0;
   }
 
-  .av.bot { background: var(--blue-light); color: var(--blue); border: 1px solid var(--blue-border); }
-  .av.usr { background: var(--bg-input);   color: var(--text-muted); border: 1px solid var(--border); }
+  .av.bot {
+    background: var(--blue-light);
+    color: var(--blue);
+    border: 1px solid var(--blue-border);
+  }
 
-  /* Message bubble */
+  .av.usr {
+    background: var(--bg-input);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
   .bubble {
-    max-width: 78%;
+    max-width: 82%;
     padding: 10px 14px;
     border-radius: var(--radius);
     font-size: 13.5px;
     line-height: 1.65;
   }
 
-  /* Bot bubble — light gray, left side */
   .msg.bot .bubble {
     background: var(--bg-surface);
     color: var(--text);
@@ -242,7 +228,6 @@
     border-radius: 4px 12px 12px 12px;
   }
 
-  /* User bubble — blue, right side */
   .msg.user .bubble {
     background: var(--blue);
     color: white;
@@ -251,16 +236,53 @@
 
   .bubble p { margin-bottom: 6px; }
   .bubble p:last-child { margin-bottom: 0; }
-  .bubble ol, .bubble ul { padding-left: 18px; margin: 6px 0; }
+  .bubble ol {
+	  padding-left: 20px;
+	  margin: 8px 0;
+	}
+
+	.bubble ul {
+	  padding-left: 28px; /* 👈 deeper indent for bullets */
+	  margin: 6px 0 10px;
+	}
+
+	.bubble li {
+	  margin-bottom: 6px;
+	}
   .bubble li { margin-bottom: 4px; }
   .bubble strong { font-weight: 600; }
 
-  /* Suggested question chip buttons */
+  .choice-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .choice-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-med);
+    background: white;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .choice-btn:hover {
+    background: var(--bg-surface);
+    border-color: var(--blue);
+    color: var(--text);
+  }
+
   .chips {
     padding: 4px 20px 10px;
-    display: flex;
+    display: none;
     gap: 6px;
     flex-wrap: wrap;
+    flex-shrink: 0;
   }
 
   .chip {
@@ -275,15 +297,19 @@
     transition: all 0.15s;
   }
 
-  .chip:hover { background: var(--bg-surface); color: var(--text); border-color: var(--blue); }
+  .chip:hover {
+    background: var(--bg-surface);
+    color: var(--text);
+    border-color: var(--blue);
+  }
 
-  /* Text input row */
   .input-row {
     padding: 12px 16px;
     border-top: 1px solid var(--border);
     display: flex;
     gap: 8px;
     align-items: flex-end;
+    flex-shrink: 0;
   }
 
   .input-row textarea {
@@ -303,70 +329,141 @@
     transition: border-color 0.15s;
   }
 
-  .input-row textarea:focus { border-color: var(--blue); background: var(--bg); }
-  .input-row textarea::placeholder { color: var(--text-hint); }
+  .input-row textarea:focus {
+    border-color: var(--blue);
+    background: var(--bg);
+  }
 
-  /* Blue send button */
+  .input-row textarea::placeholder {
+    color: var(--text-hint);
+  }
+
+  .input-row textarea:disabled {
+    background: #f7f7f7;
+    color: var(--text-hint);
+    cursor: not-allowed;
+  }
+
   .send-btn {
-    width: 38px; height: 38px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
     background: var(--blue);
     border: none;
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
     transition: opacity 0.15s, transform 0.1s;
   }
 
-  .send-btn:hover  { opacity: 0.88; }
+  .send-btn:hover { opacity: 0.88; }
   .send-btn:active { transform: scale(0.96); }
-  .send-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+  .send-btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
+
   .send-btn svg { width: 16px; height: 16px; }
 
-  /* Animated typing dots (shown while bot is responding) */
-  .typing { display: flex; gap: 4px; align-items: center; padding: 2px 0; }
-  .typing span {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--text-hint);
-    animation: bounce 1.2s infinite;
-  }
-  .typing span:nth-child(2) { animation-delay: 0.2s; }
-  .typing span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce {
-    0%,80%,100% { transform: translateY(0); opacity: .4; }
-    40%          { transform: translateY(-5px); opacity: 1; }
+  .typing {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 2px 0;
   }
 
-  /* Footer branding strip */
+  .typing span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-hint);
+    animation: bop 1.2s infinite;
+  }
+
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bop {
+    0%, 80%, 100% { transform: translateY(0); opacity: .4; }
+    40% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  .typing-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .typing-text {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+
   .footer {
     padding: 8px 20px;
     text-align: center;
     font-size: 11px;
     color: var(--text-hint);
     border-top: 1px solid var(--border);
+    flex-shrink: 0;
   }
 
-</style>
-<!-- ============================================================
-     STYLES SECTION — END
-     ============================================================ -->
+  .kb-stats {
+    font-size: 11px;
+    color: var(--text-hint);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-left: 8px;
+    white-space: nowrap;
+  }
 
+  .loadingBot {
+    display: flex;
+    align-items: center;
+    margin-top: 2px;
+    font-family: Arial, sans-serif;
+  }
+
+  .loading-text {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0C447C;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    transform: translateX(0);
+    animation: slideText 1.6s ease-in-out infinite;
+  }
+
+  @keyframes slideText {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(14px); }
+    100% { transform: translateX(0); }
+  }
+
+  #appContent {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .bubble hr {
+    margin: 12px 0;
+    border: none;
+    border-top: 1px solid rgba(0,0,0,0.10);
+  }
+</style>
 </head>
 <body>
 
-
-<!-- ============================================================
-     HTML STRUCTURE — START
-     These are the visible parts of the page.
-     Each block is labeled so you can find and edit it easily.
-     ============================================================ -->
-
 <div class="shell">
-
-  <!-- ── HEADER ──────────────────────────────────────────────────
-       Contains: app logo icon, title, subtitle, online status dot
-       To change the app name: edit the <h1> text below
-       ─────────────────────────────────────────────────────────── -->
   <div class="header">
     <div class="logo">
       <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -375,741 +472,199 @@
       </svg>
     </div>
     <div class="header-info">
-      <h1>ICCOC Canvas Assistant</h1>                        <!-- APP TITLE: change here -->
-      <p>Iowa Community College Online Consortium</p>        <!-- SUBTITLE: change here -->
+      <h1>ICCOC Canvas Assistant</h1>
+      <p>Iowa Community College Online Consortium</p>
     </div>
     <div class="status">
       <div class="dot" id="statusDot"></div>
-      <span id="statusText">Ready</span>
+      <span id="statusText">Loading...</span>
+      <span class="kb-stats" id="kbStats" style="display:none"></span>
     </div>
   </div>
-  <!-- ── END HEADER ── -->
 
-
-  <!-- ── API KEY BANNER ──────────────────────────────────────────
-       Shown at the top until the user enters their Anthropic API key.
-       Once saved, it hides itself. Key is stored privately in the browser.
-       ─────────────────────────────────────────────────────────── -->
-  <div class="api-banner" id="apiBanner">
-    <span>🔑 Enter your Anthropic API key to activate:</span>
-    <input type="password" id="apiKeyInput" placeholder="sk-ant-..." />
-    <button onclick="saveKey()">Save</button>
+  <div class="kb-banner" id="kbBanner">
+    <div id="loadingMessage" class="loadingBot">
+      <p class="loading-text">Connecting you to the right source...</p>
+    </div>
   </div>
-  <!-- ── END API KEY BANNER ── -->
 
-
-  <!-- ── ROLE SELECTOR ───────────────────────────────────────────
-       Switches the bot's focus and the quick-question chip suggestions.
-       To add a new role: add a button here AND a matching entry in ROLE_CHIPS (in JS below)
-       ─────────────────────────────────────────────────────────── -->
-  <div class="role-bar">
-    <span class="role-label">I am a:</span>
-    <button class="role-btn active" onclick="setRole('instructor', this)">Instructor</button>
-    <button class="role-btn"        onclick="setRole('student', this)">Student</button>
-    <button class="role-btn"        onclick="setRole('admin', this)">Admin</button>
-  </div>
-  <!-- ── END ROLE SELECTOR ── -->
-
-
-  <!-- ── MESSAGES AREA ───────────────────────────────────────────
-       Chat messages are injected here dynamically by JavaScript.
-       The first message below is the bot's opening/welcome message.
-       To change the welcome message: edit the text inside .bubble below.
-       ─────────────────────────────────────────────────────────── -->
-  <div class="messages" id="messages">
-
-    <!-- Bot's opening welcome message -->
-    <div class="msg bot">
-      <div class="av bot">IC</div>
-      <div class="bubble">
-        <p>Hi there! I'm your <strong>ICCOC Canvas Assistant</strong>. I can help instructors, students, and admins navigate Canvas — step by step.</p>
-        <p>Select your role above, then ask me anything about Canvas!</p>
-      </div>
+  <div id="appContent">
+    <div class="context-bar" id="contextBar">
+      <span class="context-pill" id="rolePill">Role: —</span>
+      <span class="context-pill" id="collegePill">College: —</span>
+      <span class="context-pill" id="programPill" style="display:none">Program: —</span>
+      <button class="context-change" onclick="restartOnboarding()">Change</button>
     </div>
 
+    <div class="messages" id="messages"></div>
+    <div class="chips" id="chips"></div>
+
+    <div class="input-row">
+      <textarea id="userInput" placeholder="Complete the setup above to begin..."
+        rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)" disabled></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="M14 8L2 2l2.5 6L2 14l12-6z" fill="white"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="footer">ICCOC Canvas Assistant · Powered by McRay from NCC</div>
   </div>
-  <!-- ── END MESSAGES AREA ── -->
-
-
-  <!-- ── QUICK-QUESTION CHIPS ────────────────────────────────────
-       These suggestion buttons change when the user switches roles.
-       The actual questions are defined in the ROLE_CHIPS object in JavaScript below.
-       ─────────────────────────────────────────────────────────── -->
-  <div class="chips" id="chips">
-    <!-- Default chips for Instructor role (matches ROLE_CHIPS.instructor) -->
-    <button class="chip" onclick="useChip(this)">Where do I create announcements?</button>
-    <button class="chip" onclick="useChip(this)">How do I set up a quiz?</button>
-    <button class="chip" onclick="useChip(this)">How do I build my syllabus?</button>
-    <button class="chip" onclick="useChip(this)">Where is the gradebook?</button>
-    <button class="chip" onclick="useChip(this)">How do I add content to a module?</button>
-  </div>
-  <!-- ── END CHIPS ── -->
-
-
-  <!-- ── MESSAGE INPUT ───────────────────────────────────────────
-       The text box where users type their questions.
-       Enter key sends. Shift+Enter adds a new line.
-       ─────────────────────────────────────────────────────────── -->
-  <div class="input-row">
-    <textarea
-      id="userInput"
-      placeholder="Ask anything about Canvas…"
-      rows="1"
-      onkeydown="handleKey(event)"
-      oninput="autoResize(this)">
-    </textarea>
-    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
-      <svg viewBox="0 0 16 16" fill="none">
-        <path d="M14 8L2 2l2.5 6L2 14l12-6z" fill="white"/>
-      </svg>
-    </button>
-  </div>
-  <!-- ── END MESSAGE INPUT ── -->
-
-
-  <!-- ── FOOTER ──────────────────────────────────────────────────
-       Branding line at the very bottom.
-       To change the text: edit the line below.
-       ─────────────────────────────────────────────────────────── -->
-  <div class="footer">
-    ICCOC Canvas Assistant &middot; Powered by McRay from NCC   <!-- FOOTER TEXT: change here -->
-  </div>
-  <!-- ── END FOOTER ── -->
-
 </div>
 
-<!-- ============================================================
-     HTML STRUCTURE — END
-     ============================================================ -->
-
-
-<!-- ============================================================
-     JAVASCRIPT SECTION — START
-     This is the brain of the app. It handles:
-     - Saving/loading the API key
-     - Role switching
-     - Sending messages to the Claude AI
-     - Displaying responses in the chat
-     ============================================================ -->
 <script>
-
-/* ================================================================
-   STATE VARIABLES
-   Track the app's current condition at any moment.
-   ================================================================ */
+const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzCC_ETCmcqMenHOIgILqCsI4USDO3D7htwqoUVWa_bKPtH_--fsRJuxlTnnO0WObzaSg/exec";
 
 let apiKey = localStorage.getItem('iccoc_api_key') || '';
-// Loads a previously saved key from the browser. Empty string if none.
-
-let role = 'instructor';
-// Tracks the currently selected role: 'instructor', 'student', or 'admin'
-
+let role = '';
 let history = [];
-// Stores the full conversation so the bot can reference earlier messages
-
 let busy = false;
-// Prevents sending a new message while the bot is still generating a response
-
-
-/* ================================================================
-   ████████████████████████████████████████████████████████████████
-
-   KNOWLEDGE BASE — START
-
-   ████████████████████████████████████████████████████████████████
-
-   THIS IS THE MOST IMPORTANT SECTION TO UPDATE.
-
-   Everything inside the backticks below (` ... `) is the content
-   the bot uses to answer Canvas questions.
-
-   ── HOW TO UPDATE WITH ICCOC'S OFFICIAL CANVAS DOCUMENT ────────
-   1. Open this file in Notepad
-   2. Press Ctrl+F and search for: KNOWLEDGE BASE — START
-   3. Scroll down until you see: const CANVAS_KNOWLEDGE = `
-   4. Delete everything between the opening and closing backtick
-   5. Paste in the new Canvas documentation provided by ICCOC
-   6. Save the file and refresh the browser — done!
-   ================================================================ */
-
-const CANVAS_KNOWLEDGE = `
-
-=== ABOUT ICCOC ===
-The Iowa Community College Online Consortium (ICCOC) is a partnership of Iowa community colleges
-that share online courses through a shared Canvas LMS platform. Students enrolled at a partner
-college can access a larger variety of online courses and programs.
-
-ICCOC online courses are NOT self-paced — they follow a set schedule each semester.
-
-ICCOC Partner Colleges:
-Tier 1: Eastern Iowa Community College, Iowa Lakes Community College, Northwest Iowa Community
-College, Southeastern Community College, Southwestern Community College, Western Iowa Tech
-Community College.
-Tier 3: North Iowa Area Community College (NIACC)
-
-Canvas Login:
-- Most students log into Canvas through their college's own portal
-- Southwestern Community College students log in directly (not through a portal)
-- For login issues, contact your college Help Desk (see ICCOC HELP DESK CONTACTS below)
-
-=== ICCOC GENERAL CONTACT ===
-For general ICCOC questions, confirming enrollments, checking course offerings, or being
-directed to the right department:
-- Contact: Tracy Sleep, Associate Director
-- Email: tsleep@myiccoc.org
-- Phone: 319-759-0497
-
-ICCOC Staff:
-- Theresa Umscheid, Executive Director: tumscheid@myiccoc.org | 712-362-7948
-- Chuck Chrisman, Director of Technology Services: cchrisman@scciowa.edu | 866-722-4692 ext. 5070
-- Marni Kelso, Course Management: mkelso@myiccoc.org | 641-631-0690 (M-F 7AM-4PM)
-- Doug Sutton, Coordinator of Online Resources: dsutton@myiccoc.org | 712-362-7987
-- Kelly Maxwell, Instructional Designer & Lead Trainer: kmaxwell@myiccoc.org | 641-278-6304
-
-=== ICCOC HELP DESK CONTACTS (Per College) ===
-Each partner college has its own Help Desk for technical issues — logging into Canvas,
-accessing courses, college portal issues, and campus email.
-
-Eastern Iowa Community College:
-- Phone: 563-336-3456
-- Email: helpdesk@eicc.edu
-
-Iowa Lakes Community College:
-- Phone: 800-242-5106 ext. 8383
-- Email: helpdesk@iowalakes.edu
-
-Northwest Iowa Community College:
-- Contact: Sarah Fykstra
-- Phone: 800-352-4907 ext. 262
-- Email: sfykstra@nwicc.edu
-
-Southeastern Community College:
-- Phone: 319-208-5087
-- Email: helpdesk@scciowa.edu
-
-Southwestern Community College:
-- Contact: Doug Greene
-- Phone: 641-782-1324
-- Email: greene@swcciowa.edu
-
-Western Iowa Tech Community College:
-- Phone: 712-274-8733 ext. 1461
-- Email: helpdesk@witcc.edu
-- Note: Students in non-credit courses contact Lynn Konz at lynn.konz@witcc.edu
-
-=== CANVAS SUPPORT (24/7) ===
-Canvas Support is available 24 hours a day, 7 days a week, 365 days a year.
-It handles technical issues WITHIN Canvas — error messages, exam issues, etc.
-
-To access Canvas Support:
-1. Log into Canvas
-2. Click the Help icon on the left-hand Global Navigation menu
-3. Select Canvas Support
-
-Canvas Support Hotline: 844-214-6951
-
-Note: For login issues or portal access problems, contact your college Help Desk instead
-(Canvas Support only handles issues once you are inside Canvas).
-
-=== CANVAS NAVIGATION ===
-Canvas has a left-side Global Navigation menu with icons for:
-Dashboard, Courses, Calendar, Inbox, History, Help, and Account/Profile.
-Inside each course, there is a Course Navigation menu on the left with links
-specific to that course.
-
-=== ANNOUNCEMENTS (Instructors) ===
-Location: Course Navigation (left sidebar) > Announcements
-What it does: Allows instructors to broadcast information to all students or sections.
-Students are notified automatically based on their notification settings.
-
-To create an announcement:
-1. Click "Announcements" in the Course Navigation
-2. Click "+ Announcement" (top right)
-3. Add a Title
-4. Write your content in the Rich Content Editor
-5. Optional: schedule a delayed post, allow replies, enable podcast feed, allow liking
-6. Click "Save" to publish immediately, or save as a draft
-
-Students can reply to announcements if the instructor allows it.
-Replies do NOT appear in the Inbox — they stay within the Announcement.
-Admins can create global announcements for all colleges account-wide.
-
-=== ASSIGNMENTS (Instructors) ===
-Location: Course Navigation > Assignments
-
-To create an assignment:
-1. Click "Assignments" in Course Navigation
-2. Click "+ Assignment" (top right)
-3. Fill in: Title, Instructions, Points possible
-4. Set Submission Type:
-   - Online: text entry, file upload, media recording, URL
-   - On Paper
-   - No Submission
-   - External Tool (LTI)
-5. Set Due Date, Available From, and Until dates
-6. Click "Save & Publish" to make it live, or "Save" as a draft
-
-ICCOC Assessment strategies instructors may use:
-Pre-test/Post-test, Written Assignments, Threaded Discussions, Individual Projects,
-Group Projects, Exams, Student Portfolios, Research Papers, Student Media Projects
-
-=== QUIZZES — Classic (Instructors) ===
-Location: Course Navigation > Quizzes
-
-To create a classic quiz:
-1. Click "Quizzes" in Course Navigation
-2. Click "+ Quiz"
-3. Settings tab: set Title, Quiz Type (Graded Quiz / Practice Quiz / Graded Survey),
-   time limit, number of allowed attempts, shuffle answers option
-4. Questions tab: Click "+ New Question" and choose type:
-   Multiple Choice, True/False, Short Answer, Essay, Matching,
-   Fill-in-the-Blank, File Upload
-5. Click "Save & Publish" when ready
-
-Proctoring Note: Some ICCOC instructors require quizzes/exams to be proctored.
-If required, the instructor will state this in the syllabus.
-ICCOC uses Honorlock for remote proctoring (fully online courses only).
-For Honorlock info contact Kelly Maxwell at kmaxwell@myiccoc.org or visit honorlock.com
-
-=== QUIZZES — New Quizzes (Instructors) ===
-Location: Course Navigation > Quizzes > click "+ Quiz" > select "New Quizzes" engine
-- Opens in a separate builder interface
-- Supports additional types: Stimulus, Categorization, Ordering, Hot Spot questions
-
-=== GRADEBOOK (Instructors) ===
-Location: Course Navigation > Grades
-- Spreadsheet view: students in rows, assignments in columns
-- To enter a grade manually: Click the cell > type grade > press Enter
-- To leave a comment: Click the cell > click the speech bubble icon
-- Filters: Click "View" menu to filter by student group, grading period, or module
-- To download grades: Actions > Export > CSV
-- Late Policy settings: View > Late Policies
-
-=== SPEEDGRADER (Instructors) ===
-Access from Assignments: Click assignment name > "SpeedGrader" link (top right)
-Access from Gradebook: Click a grade cell > SpeedGrader icon
-Features: View student submissions, add text/media comments, annotate documents,
-apply rubric scores, assign final grade
-
-=== MODULES (Instructors) ===
-Location: Course Navigation > Modules
-
-To create a module:
-1. Click "+ Module" (top right)
-2. Give it a name and click "Add Module"
-
-To add content to a module:
-1. Click the "+" icon on the right side of the module row
-2. Choose item type: Assignment, Quiz, File, Page, Discussion,
-   External URL, External Tool, or Text Header
-3. Click "Add Item"
-
-Additional options:
-- Drag items to reorder within or between modules
-- Set Prerequisites (must complete module X before accessing this one)
-- Set Completion Requirements per item (must view, must submit, must score X)
-- Publish/unpublish individual items or entire modules
-
-=== PAGES / CONTENT PAGES (Instructors) ===
-Location: Course Navigation > Pages
-
-To create a page:
-1. Click "+ Page" (top right)
-2. Give the page a title
-3. Use the Rich Content Editor to add text, images, videos, links, tables
-4. Can embed: YouTube, Vimeo, Google Docs, and other media
-5. Click "Save & Publish"
-
-To set a page as the Course Home/Front Page:
-- Click the 3-dot menu next to the page > "Set as Front Page"
-- Then go to Course Home > "Choose Home Page" > select "Pages Front Page"
-
-=== SYLLABUS & WELCOME PAGE (Instructors) ===
-Location: Course Navigation > Syllabus
-
-The Syllabus page has two parts:
-1. Syllabus Description (top) — editable area you control
-2. Course Summary (bottom) — auto-generated from all assignments and events
-
-To edit the syllabus:
-1. Click "Edit" (top right of Syllabus page)
-2. Use the Rich Content Editor to add content
-3. Best practices:
-   - Upload your syllabus PDF and embed it using Insert > Document
-   - OR type/paste content directly into the editor
-   - Include: welcome message, course policies, instructor contact info,
-     ICCOC Student Ethics & User Agreement reference
-
-ICCOC Requirement: All courses must include the ICCOC Student Ethics & Usage Statement.
-Include a Netiquette Statement in your syllabus with examples of proper/improper behavior.
-All textbook info must match what is listed on the ICCOC website and in Simple Syllabus.
-
-=== SIMPLE SYLLABUS (ICCOC-Specific) ===
-ICCOC uses Simple Syllabus for official course syllabus management.
-All faculty must ensure their course is updated to the current textbook each semester.
-The textbook listed in Simple Syllabus must match what is on the ICCOC website.
-For textbook questions: visit myiccoc.org/textbook-info
-
-=== DISCUSSIONS (Instructors) ===
-Location: Course Navigation > Discussions
-
-To create a discussion:
-1. Click "+ Discussion"
-2. Set: Title, description/prompt
-3. Options: Graded or ungraded, threaded or focused replies,
-   allow liking, require initial post before seeing peers, available dates
-4. Click "Save & Publish"
-
-=== FILES (Instructors) ===
-Location: Course Navigation > Files
-- Upload files: Click "Upload" or drag & drop
-- Create folders: Click "+ Folder"
-- Share a file: Click the file > copy preview or download link
-- Files here can be linked from Pages, Assignments, and Announcements
-
-=== PEOPLE / ROSTER (Instructors) ===
-Location: Course Navigation > People
-- View all enrolled students, TAs, observers, teachers
-- To add a user manually: Click "+ People" > enter email or Canvas login ID >
-  choose role > Add to Course
-
-=== INBOX / MESSAGING (All Users) ===
-Location: Global Navigation (left sidebar) > Inbox icon (envelope)
-
-To send a message:
-1. Click the pencil/compose icon
-2. Select the Course context
-3. Search for recipient(s)
-   - Instructors: select the course name to message ALL students at once
-4. Write message > click Send
-- Supports file attachments and media messages
-
-=== COURSE SETTINGS (Instructors) ===
-Location: Course Navigation > Settings
-Tabs: Course Details, Sections, Navigation, Apps (LTI), Feature Options, Notifications
-- To show/hide or reorder navigation items:
-  Settings > Navigation tab > drag items between Enabled and Disabled sections
-
-=== CALENDAR ===
-Location: Global Navigation > Calendar icon
-- Color-coded by course
-- Shows all assignment due dates and course events
-- Click any event to see details or go directly to the assignment
-
-=== FOR STUDENTS ===
-
-Getting Enrolled:
-- Select one of the ICCOC partner colleges offering the course you want
-- Apply for admission at that college (your "home college")
-- Register through your home college's student portal
-- ICCOC courses are NOT self-paced — they follow a set semester schedule
-
-Logging into Canvas:
-- Log in through your college portal (most colleges)
-- Southwestern Community College students log in directly to Canvas
-- For login issues: contact your college Help Desk (see ICCOC HELP DESK CONTACTS)
-
-Submitting an Assignment:
-1. Go to Course Navigation > Assignments
-2. Click the assignment name
-3. Click "Submit Assignment" (top right)
-4. Choose submission type: file upload, text entry, URL, or media recording
-5. Upload your file or type your content
-6. Click "Submit Assignment"
-A confirmation screen shows your submission timestamp — save this as proof.
-
-Viewing Grades:
-- Location: Course Navigation > Grades
-- Shows all assignments, scores, due dates, and instructor comments
-- Click any assignment row to see detailed feedback and rubric scores
-
-Viewing Announcements:
-- Location: Course Navigation > Announcements
-- Also visible on the Dashboard under "Recent Activity"
-
-Messaging your Instructor:
-1. Global Navigation > Inbox
-2. Click compose icon (pencil)
-3. Select the Course
-4. Search for your instructor's name
-5. Write and send your message
-
-Online Tutoring (Brainfuse) — FREE for ICCOC Students:
-Students in fully online, hybrid, or eCompanion courses get 15 hours of free tutoring
-per academic year (August through July) through Brainfuse.
-- Access: Click the "Online Tutoring" or "Brainfuse" link in your Canvas course navigation
-- Available 24/7/365
-- Services: Live tutoring, writing review, Q&A, SkillSurfer, Flashbulb, Language Lab,
-  LEAP, Meet, Brainwave
-- Brainfuse technical support: support@brainfuse.com
-
-Library Services:
-- Every ICCOC online course has a Library Services link in the course navigation
-- Provides access to journal articles, full-text books, reports, newspapers
-- Your home college library staff can also assist you directly
-
-Proctored Exams:
-- Some instructors require exams to be proctored
-- The instructor will state this requirement in the syllabus
-- Options: physical testing center at a partner college, or Honorlock (remote proctoring)
-- For physical testing center contacts: myiccoc.org/proctors-and-testing-sites
-
-Academic Accommodations:
-- Students needing accommodations must have a Student Accommodations Plan at their home college
-- Each college has its own process and documentation requirements
-- Contact your home college's student services office to start this process
-- More info: myiccoc.org/academic-accommodations
-
-Concerns About Your Instructor:
-1. First: Communicate directly with your instructor to resolve the issue
-2. If unresolved: Contact the Dean or Director of Distance Learning at your HOME college
-3. They will then contact the instructor or the instructor's college
-
-=== FACULTY TRAINING & RESOURCES (Instructors) ===
-ICCOC provides training through:
-- Monthly Webinars (Next Up at Noon Lunch & Learns)
-- Weekly Newsletters
-- Annual Spring Conference
-- Mentor Trainer support at each college
-
-Lead Trainer / Instructional Designer: Kelly Maxwell
-Email: kmaxwell@myiccoc.org | Phone: 641-278-6304
-
-Course Development Resource in Canvas (most up-to-date training info):
-https://iowacconline.instructure.com/courses/73391
-
-Canvas Guides (official): https://community.canvaslms.com/t5/Canvas-Guides/ct-p/canvas_guides
-
-Course Design Requirements:
-- All ICCOC courses must meet set quality standards
-- Review the Course Quality Checklist in the Course Development Resource
-- Courses must be ADA compliant — see Accessibility resources in the Faculty Center
-- Copyright: Unlawful reproduction of copyrighted material is prohibited in all ICCOC classes
-  Instructors must obtain proper permission for all copyrighted material
-
-=== FOR ADMINS ===
-
-Adding a User to Canvas:
-- Admin (left nav) > your institution name > People > "+ People"
-- Enter email or SIS ID > assign role (Student, Teacher, TA, Observer, Designer) > Add User
-
-Creating a New Course:
-- Admin > your institution > Courses > "+ Add New Course"
-- Enter: Course Name, Reference Code, Enrollment Term, Default Timezone
-
-Bulk Enrollment via SIS Import:
-- Admin > SIS Import
-- Upload CSV file per Canvas SIS import spec
-- Supported files: courses.csv, users.csv, enrollments.csv, sections.csv
-
-Viewing All Courses:
-- Admin > Courses (search by name or filter by term, published/unpublished state)
-
-Account-Level Settings:
-- Admin > Settings
-- Configure: Authentication, feature flags, notifications, branding, integrations
-
-Adding an LTI / External App:
-- Admin > Settings > Apps tab > "+ App"
-- Or course level: Course Settings > Apps > "+ App"
-
-Feature Options:
-- Admin > Settings > Feature Options tab
-- Toggle features: New Quizzes, Module enhancements, etc.
-
-ICCOC Technology Director for Admin issues:
-Chuck Chrisman | cchrisman@scciowa.edu | 866-722-4692 ext. 5070
-
-=== GENERAL TIPS (All Users) ===
-- Canvas auto-saves drafts in the Rich Content Editor
-- Dashboard shows all active courses as cards — click a card to enter
-- If a menu item is missing from Course Navigation: Settings > Navigation to enable it
-- Canvas mobile app (iOS & Android) uses the same login credentials
-- Customize notifications: Account (top-left Global Nav) > Notifications
-- Browser requirements: modern browsers recommended (Chrome, Firefox, Edge, Safari)
-  For details: community.canvaslms.com browser requirements page
-- Canvas Support Hotline (24/7): 844-214-6951
-- General ICCOC questions: Tracy Sleep at tsleep@myiccoc.org | 319-759-0497
-
-`;
-
-/* ================================================================
-   ████████████████████████████████████████████████████████████████
-
-   KNOWLEDGE BASE — END
-
-   ████████████████████████████████████████████████████████████████
-   ================================================================ */
-
-
-/* ================================================================
-   SYSTEM PROMPT — START
-   ════════════════════════════════════════════════════════════════
-   This tells the AI HOW to behave — tone, rules, and personality.
-   The CANVAS_KNOWLEDGE above is automatically injected into it.
-
-   TO CHANGE THE BOT'S TONE OR RULES:
-   - Edit the text in the backticks below
-   - Example: change "warm, professional" to "formal and concise"
-   - Example: add a specific ICCOC support email or phone number
-
-   ⚠ DO NOT remove ${CANVAS_KNOWLEDGE} — that line is what
-     connects the knowledge base to the AI's instructions.
-   ================================================================ */
-
-const SYSTEM_PROMPT = `You are the ICCOC Canvas Assistant — a knowledgeable, friendly, and patient guide
-for users of Canvas LMS at Iowa Community College Online Consortium (ICCOC) member colleges in Iowa.
-
-You help three types of users: Instructors, Students, and Admins.
-The user's current role is provided at the start of each message as [ROLE: ...].
-Always tailor your answer specifically to that role.
-
-Use ONLY the Canvas knowledge below to answer questions accurately:
-
-${CANVAS_KNOWLEDGE}
-
-RESPONSE RULES:
-- Give numbered, step-by-step directions when explaining how to do something
-- Be concise but complete — never skip important steps
-- Use the exact Canvas menu names and button labels as they appear in Canvas
-- Keep a warm, professional, and encouraging tone at all times
-- If a question falls outside this knowledge base, say so honestly
-  and suggest the user contact ICCOC support directly
-- Never make up features or locations you are not certain about`;
-
-/* ================================================================
-   SYSTEM PROMPT — END
-   ================================================================ */
-
-
-/* ================================================================
-   ROLE CHIPS — START
-   ════════════════════════════════════════════════════════════════
-   These are the suggested question buttons shown below the chat.
-   They update automatically when the user switches roles.
-
-   TO ADD, REMOVE, OR EDIT A CHIP:
-   - Find the role you want to update below (instructor/student/admin)
-   - Add or change a string in that role's array
-   - Keep text short — these display as small clickable buttons
-   - Each role can have as many chips as you like
-   ================================================================ */
-
-const ROLE_CHIPS = {
-
-  /* Suggested questions for Instructors */
-  instructor: [
+let kbData = null;
+let selectedCollege = '';
+let onboardingStep = 'role';
+let selectedProgram = localStorage.getItem('iccoc_program') || '';
+let userFlags = {
+  internationalStudent: false,
+  trioStudent: false
+};
+
+const DEFAULT_CHIPS = {
+  Student: [
+    'How do I submit an assignment?',
+    'Where do I see my grades?',
+    'I can\'t log into Canvas',
+    'Where is my course?',
+    'How do I message my instructor?'
+  ],
+  Instructor: [
     'Where do I create announcements?',
     'How do I set up a quiz?',
     'How do I build my syllabus?',
     'Where is the gradebook?',
     'How do I add content to a module?'
   ],
-
-  /* Suggested questions for Students */
-  student: [
-    'How do I submit an assignment?',
-    'Where do I see my grades?',
-    'How do I message my instructor?',
-    'Where are course announcements?',
-    'How do I join a course?'
-  ],
-
-  /* Suggested questions for Admins */
-  admin: [
+  Admin: [
     'How do I add a user to Canvas?',
     'How do I create a new course?',
     'How do I do a bulk enrollment?',
     'Where are account-level settings?',
     'How do I add an LTI tool?'
   ]
-
 };
 
-/* ================================================================
-   ROLE CHIPS — END
-   ================================================================ */
-
-
-/* ================================================================
-   APP FUNCTIONS — START
-   ════════════════════════════════════════════════════════════════
-   The functions below power all the interactive behavior.
-   You generally do NOT need to edit anything below this line
-   unless you are a developer making structural changes.
-   ================================================================ */
-
-/* On page load: check if an API key is already saved in the browser */
 window.addEventListener('DOMContentLoaded', () => {
-  if (apiKey) {
-    document.getElementById('apiBanner').style.display = 'none';
-    setStatus(true);
-  }
+  setStatus('loading');
+  loadKnowledgeBase();
 });
 
-/* Save the API key to browser storage when the user clicks "Save" */
-function saveKey() {
-  const val = document.getElementById('apiKeyInput').value.trim();
+async function loadKnowledgeBase() {
+  if (!SHEET_API_URL || SHEET_API_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+    document.getElementById('kbBanner').textContent =
+      '⚠️ No Google Sheet URL configured yet — using built-in knowledge.';
 
-  if (!val.startsWith('sk-')) {
-    alert('Please enter a valid Anthropic API key starting with sk-ant-...');
+    setTimeout(() => {
+      showApp();
+      kbData = null;
+      renderWelcomeFlow();
+      setStatus('online');
+    }, 3000);
     return;
   }
 
-  apiKey = val;
-  localStorage.setItem('iccoc_api_key', apiKey);
-  document.getElementById('apiBanner').style.display = 'none';
-  setStatus(true);
-  addBotMsg("API key saved! I'm ready to help you navigate Canvas. What would you like to know?");
-}
+  try {
+    const res = await fetch(SHEET_API_URL);
+    const data = await res.json();
 
-/* Update the status dot and label (green = online, red = no key) */
-function setStatus(online) {
-  document.getElementById('statusDot').style.background = online ? '#1D9E75' : '#E24B4A';
-  document.getElementById('statusText').textContent     = online ? 'Online'  : 'No API key';
-}
+    if (data.status !== 'ok') {
+      throw new Error(data.message || 'Sheet returned an error');
+    }
 
-/* Switch the active role and update the chip buttons */
-function setRole(r, btn) {
-  role = r;
-  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+    kbData = data;
+    const cfg = data.config || {};
 
-  const chipsEl = document.getElementById('chips');
-  chipsEl.style.display = 'flex';
-  chipsEl.innerHTML = ROLE_CHIPS[r]
-    .map(c => `<button class="chip" onclick="useChip(this)">${c}</button>`)
-    .join('');
-}
+    if (cfg.APP_TITLE) {
+      document.querySelector('.header-info h1').textContent = cfg.APP_TITLE;
+      document.title = cfg.APP_TITLE;
+    }
 
-/* When a chip is clicked: fill the input box and send it */
-function useChip(btn) {
-  document.getElementById('userInput').value = btn.textContent;
-  document.getElementById('chips').style.display = 'none';
-  sendMessage();
-}
+    if (!apiKey && data.apiKey && data.apiKey.startsWith('sk-')) {
+      apiKey = data.apiKey;
+      localStorage.setItem('iccoc_api_key', apiKey);
+    }
 
-/* Grow the textarea height automatically as the user types */
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
-}
+    const faqCount = (data.faq || []).length;
+    const vendorCount = (data.vendors || []).length;
+    const textbookCount = (data.textbooks || []).length;
+    const contactCount = (data.contacts || []).length;
+    const collegeCount = (data.colleges || []).length;
+    const programCount = (data.programs || []).length;
+    const serviceCount = (data.services || []).length;
+    const total = faqCount + vendorCount + textbookCount + contactCount + collegeCount + programCount + serviceCount;
 
-/* Send on Enter key press (Shift+Enter = new line) */
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
+    const statsEl = document.getElementById('kbStats');
+    statsEl.textContent = `${total} KB entries`;
+    statsEl.style.display = 'inline';
+
+    showApp();
+    renderWelcomeFlow();
+    setStatus('online');
+  } catch (err) {
+    const banner = document.getElementById('kbBanner');
+    if (banner) {
+      banner.textContent = `⚠️ Could not load knowledge base: ${err.message}. Using built-in fallback.`;
+      banner.classList.add('error');
+    }
+
+    kbData = null;
+    showApp();
+    renderWelcomeFlow();
+    setStatus('online');
   }
 }
 
-/* Scroll the chat to the most recent message */
+function showApp() {
+  const kbBanner = document.getElementById('kbBanner');
+  if (kbBanner && !kbBanner.classList.contains('error')) {
+    kbBanner.classList.add('hidden');
+  }
+
+  const appContent = document.getElementById('appContent');
+  if (appContent) {
+    appContent.style.display = 'flex';
+    setTimeout(() => {
+      appContent.style.opacity = '1';
+    }, 50);
+  }
+}
+
+function setStatus(state) {
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+
+  const states = {
+    loading: { cls: 'loading', label: 'Loading KB...' },
+    online:  { cls: 'online',  label: 'Online' },
+    error:   { cls: 'error',   label: 'Error' }
+  };
+
+  const s = states[state] || states.online;
+  dot.className = `dot ${s.cls}`;
+  text.textContent = s.label;
+}
+
+function escHtml(t) {
+  return String(t || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function scrollBottom() {
   const m = document.getElementById('messages');
   m.scrollTop = m.scrollHeight;
 }
 
-/* Add a bot message bubble to the chat */
 function addBotMsg(html) {
   const m = document.getElementById('messages');
   const d = document.createElement('div');
@@ -1119,7 +674,6 @@ function addBotMsg(html) {
   scrollBottom();
 }
 
-/* Add a user message bubble to the chat */
 function addUserMsg(text) {
   const m = document.getElementById('messages');
   const d = document.createElement('div');
@@ -1129,151 +683,1180 @@ function addUserMsg(text) {
   scrollBottom();
 }
 
-/* Escape special HTML characters to prevent display bugs */
-function escHtml(t) {
-  return t
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+function addChoiceMsg(html) {
+  addBotMsg(html);
 }
 
-/* Show animated typing dots while waiting for the AI response */
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
 function showTyping() {
   const m = document.getElementById('messages');
   const d = document.createElement('div');
   d.id = 'typing';
   d.className = 'msg bot';
-  d.innerHTML = '<div class="av bot">IC</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  d.innerHTML = `
+    <div class="av bot">IC</div>
+    <div class="bubble">
+      <div class="typing-wrap">
+        <span class="typing-text">Assistant is typing</span>
+        <div class="typing">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  `;
   m.appendChild(d);
   scrollBottom();
 }
 
-/* Remove the typing indicator once the response arrives */
 function removeTyping() {
   const t = document.getElementById('typing');
   if (t) t.remove();
 }
 
-/* Convert the AI's markdown-style text into formatted HTML
-   Handles: **bold**, *italic*, numbered lists (1. 2. 3.), bullets (- )  */
+function enableChat() {
+  document.getElementById('userInput').disabled = false;
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('userInput').placeholder = 'Ask anything about Canvas…';
+}
+
+function disableChat() {
+  document.getElementById('userInput').disabled = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('userInput').placeholder = 'Complete the setup above to begin...';
+}
+
+function showChips() {
+  renderChips();
+  document.getElementById('chips').style.display = 'flex';
+}
+
+function hideChips() {
+  document.getElementById('chips').style.display = 'none';
+}
+
+function updateContextBar() {
+  const bar = document.getElementById('contextBar');
+  const rolePill = document.getElementById('rolePill');
+  const collegePill = document.getElementById('collegePill');
+  const programPill = document.getElementById('programPill');
+
+  if (onboardingStep === 'done') {
+    rolePill.textContent = `Role: ${role}`;
+    collegePill.textContent = `College: ${selectedCollege}`;
+
+    if (selectedProgram) {
+      programPill.textContent = `Program: ${selectedProgram}`;
+      programPill.style.display = 'inline-block';
+    } else {
+      programPill.style.display = 'none';
+    }
+
+    bar.style.display = 'flex';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function restartOnboarding() {
+  role = '';
+  selectedCollege = '';
+  selectedProgram = '';
+  userFlags = { internationalStudent: false, trioStudent: false };
+  localStorage.removeItem('iccoc_program');
+  onboardingStep = 'role';
+  history = [];
+  hideChips();
+  disableChat();
+  updateContextBar();
+  renderWelcomeFlow();
+}
+
+function renderRoleChoices() {
+  return `
+    <div class="choice-wrap">
+      <button class="choice-btn" onclick="selectRole('Student')">Student</button>
+      <button class="choice-btn" onclick="selectRole('Instructor')">Instructor</button>
+      <button class="choice-btn" onclick="selectRole('Admin')">Admin</button>
+    </div>
+  `;
+}
+
+function getActiveColleges() {
+  if (!kbData || !kbData.colleges) return [];
+
+  return kbData.colleges
+    .slice()
+    .sort((a, b) => Number(a.SortOrder || 999) - Number(b.SortOrder || 999));
+}
+
+function renderCollegeChoices() {
+  const colleges = getActiveColleges();
+  const list = colleges.length
+    ? colleges.map(row =>
+        `<button class="choice-btn" onclick="selectCollege('${String(row.CollegeName || '').replace(/'/g, "\\'")}')">${escHtml(row.CollegeName || '')}</button>`
+      ).join('')
+    : `
+      <button class="choice-btn" onclick="selectCollege('Northwest Iowa CC')">Northwest Iowa CC</button>
+      <button class="choice-btn" onclick="selectCollege('Iowa Lakes CC')">Iowa Lakes CC</button>
+      <button class="choice-btn" onclick="selectCollege('Western Iowa Tech CC')">Western Iowa Tech CC</button>
+    `;
+
+  return `<div class="choice-wrap">${list}</div>`;
+}
+
+function selectRole(selectedRole) {
+  role = selectedRole;
+  onboardingStep = 'college';
+  renderWelcomeFlow();
+}
+
+function selectCollege(collegeName) {
+  selectedCollege = collegeName;
+  onboardingStep = 'done';
+  history = [];
+  updateContextBar();
+  enableChat();
+  showChips();
+  renderWelcomeFlow();
+}
+
+function renderWelcomeFlow() {
+  const messages = document.getElementById('messages');
+  messages.innerHTML = '';
+
+  if (onboardingStep === 'role') {
+    hideChips();
+    disableChat();
+    updateContextBar();
+
+    addChoiceMsg(`
+      <p>Hi there! 👋 I'm your ICCOC Canvas Assistant.</p>
+      <p>I help students, instructors, and admins navigate Canvas step by step.</p>
+      <p>To get started, choose your role below.</p>
+      ${renderRoleChoices()}
+    `);
+    return;
+  }
+
+  if (onboardingStep === 'college') {
+    hideChips();
+    disableChat();
+    updateContextBar();
+
+    addChoiceMsg(`
+      <p>Great — I have you as <strong>${role}</strong>.</p>
+      <p>Now choose your college so I can guide you more accurately.</p>
+      ${renderCollegeChoices()}
+    `);
+    return;
+  }
+
+  if (onboardingStep === 'done') {
+    updateContextBar();
+
+    addBotMsg(`
+      <p>Perfect — you’re set up as <strong>${role}</strong> from <strong>${escHtml(selectedCollege)}</strong>.</p>
+      <p>Ask me anything about Canvas, and I’ll guide you step by step.</p>
+    `);
+  }
+}
+
+function renderChips() {
+  const el = document.getElementById('chips');
+
+  if (!role) {
+    el.innerHTML = '';
+    return;
+  }
+
+  if (kbData && kbData.faq) {
+    const roleRows = kbData.faq.filter(r => {
+      const a = (r['Audience'] || '').toLowerCase();
+      return a === role.toLowerCase() || a === 'all';
+    });
+
+    const highPriority = roleRows
+      .filter(r => (r['Priority'] || '').toLowerCase() === 'high')
+      .slice(0, 5);
+
+    if (highPriority.length > 0) {
+      el.innerHTML = highPriority
+        .map(r => `<button class="chip" onclick="useChip(this)">${escHtml(r['User Says'] || '')}</button>`)
+        .join('');
+      return;
+    }
+  }
+
+  const chips = DEFAULT_CHIPS[role] || [];
+  el.innerHTML = chips
+    .map(c => `<button class="chip" onclick="useChip(this)">${escHtml(c)}</button>`)
+    .join('');
+}
+
+function useChip(btn) {
+  document.getElementById('userInput').value = btn.textContent;
+  sendMessage();
+}
+
 function formatReply(text) {
   text = text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>');
 
   const lines = text.split('\n');
-  let html = '', inOl = false, inUl = false;
+  let html = '';
+  let inOl = false;
+  let inUl = false;
 
-  for (let line of lines) {
-    const ol = line.match(/^\d+\.\s+(.*)/);  /* Numbered:  1. step */
-    const ul = line.match(/^[-•]\s+(.*)/);   /* Bullet:    - item  */
-
-    if (ol) {
-      if (!inOl) { if (inUl) { html += '</ul>'; inUl = false; } html += '<ol>'; inOl = true; }
-      html += `<li>${ol[1]}</li>`;
-    } else if (ul) {
-      if (!inUl) { if (inOl) { html += '</ol>'; inOl = false; } html += '<ul>'; inUl = true; }
-      html += `<li>${ul[1]}</li>`;
-    } else {
-      if (inOl) { html += '</ol>'; inOl = false; }
-      if (inUl) { html += '</ul>'; inUl = false; }
-      if (line.trim()) html += `<p>${line}</p>`;
+  function closeLists() {
+    if (inUl) {
+      html += '</ul>';
+      inUl = false;
+    }
+    if (inOl) {
+      html += '</ol>';
+      inOl = false;
     }
   }
 
-  if (inOl) html += '</ol>';
-  if (inUl) html += '</ul>';
+  for (let rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    const hrMatch = line.match(/^---+$/);
+    const olMatch = line.match(/^\d+\.\s+(.*)/);
+    const ulMatch = line.match(/^[-•]\s+(.*)/);
+
+    if (hrMatch) {
+      closeLists();
+      html += `<hr>`;
+      continue;
+    }
+
+    if (line.toLowerCase() === 'need help?') {
+      closeLists();
+      html += `<p><strong>Need help?</strong></p>`;
+      continue;
+    }
+
+    if (olMatch) {
+      if (inUl) {
+        html += '</ul>';
+        inUl = false;
+      }
+      if (!inOl) {
+        html += '<ol>';
+        inOl = true;
+      }
+      html += `<li>${olMatch[1]}</li>`;
+      continue;
+    }
+
+    if (ulMatch) {
+      if (inOl) {
+        html += '</ol>';
+        inOl = false;
+      }
+      if (!inUl) {
+        html += '<ul>';
+        inUl = true;
+      }
+      html += `<li>${ulMatch[1]}</li>`;
+      continue;
+    }
+
+    closeLists();
+    html += `<p>${line}</p>`;
+  }
+
+  closeLists();
   return html;
 }
 
-/* ================================================================
-   MAIN SEND FUNCTION
-   Called every time the user sends a message.
-   Flow: validate → call Claude API → display response
-   ================================================================ */
+function norm(v) {
+  return (v || '').toString().trim();
+}
+
+function lower(v) {
+  return norm(v).toLowerCase();
+}
+
+function upperText(text) {
+  return norm(text).toUpperCase();
+}
+
+function normalizeCourseCode(text) {
+  const t = upperText(text);
+  const compact = t.replace(/\s+/g, ' ').trim();
+  const m = compact.match(/\b([A-Z]{2,5})[\s\-]?(\d{2,4}[A-Z]?)\b/);
+  if (m) return `${m[1]}-${m[2]}`;
+  return '';
+}
+
+function extractEntities(input) {
+  const text = upperText(input);
+
+  const courseCode = normalizeCourseCode(text);
+  const college = (text.match(/\b(NCC|WITCC|EICC|ILCC|SWCC|NIACC)\b/) || [])[0] || '';
+
+  const termPatterns = [
+    { re: /\bSUMMER\s*2026\b/, value: 'Summer 2026' },
+    { re: /\bFALL\s*2026\b/, value: 'Fall 2026' },
+    { re: /\bSPRING\s*2027\b/, value: 'Spring 2027' },
+    { re: /\bWINTER(?:IM)?\s*(?:2026|2027|26\/27|2627)\b/, value: 'Winterim 2026/2027' }
+  ];
+  const term = (termPatterns.find(p => p.re.test(text)) || {}).value || '';
+
+  let vendor = (text.match(/\b(PEARSON|CENGAGE|MCGRAW(?:\s*HILL)?|WILEY|ELSEVIER|VITALSOURCE|SAGE|CAMBRIDGE)\b/) || [])[0] || '';
+  if (vendor === 'MCGRAW' || vendor === 'MCGRAW HILL') vendor = 'McGraw Hill';
+
+  let author = '';
+  const byMatch = input.match(/\b(?:by|authored by)\s+([A-Za-z][A-Za-z\-' ]{1,40})/i);
+  if (byMatch) author = norm(byMatch[1]).replace(/[?.!,;:]+$/, '');
+
+  return { courseCode, college, term, vendor, author };
+}
+
+function questionLooksLikeTextbook(q) {
+  const x = lower(q);
+  return [
+    'textbook', 'book', 'books', 'isbn', 'author', 'edition', 'publisher',
+    'course material', 'ebook', 'access code',
+    'pearson', 'cengage', 'mcgraw', 'wiley', 'vitalsource', 'elsevier',
+    'mindtap', 'connect', 'simnet'
+  ].some(k => x.includes(k)) || !!normalizeCourseCode(q);
+}
+
+function questionLooksLikeVendor(q) {
+  const x = lower(q);
+  return [
+    'pearson', 'cengage', 'mcgraw', 'wiley', 'vitalsource', 'elsevier',
+    'mindtap', 'connect', 'simnet', 'revel', 'mylab', 'evolve', 'bookshelf'
+  ].some(k => x.includes(k));
+}
+
+function questionLooksLikeAuthorSearch(q) {
+  const x = lower(q);
+  return x.includes('authored by') ||
+         x.includes('books by ') ||
+         x.includes('textbooks by ') ||
+         x.includes('author ');
+}
+
+function questionLooksLikeAdvising(q) {
+  const x = lower(q);
+  return [
+    'advisor',
+    'adviser',
+    'academic advisor',
+    'what classes should i take',
+    'what class should i take',
+    'what courses should i take',
+    'what programs can i take',
+    'what programs are offered',
+    'what majors are offered',
+    'programs offered',
+    'degree options',
+    'majors',
+    'programs',
+    'register',
+    'registration',
+    'enroll full time',
+    'full time',
+    'part time',
+    'hybrid class',
+    'hybrid classes',
+    'online class',
+    'online classes',
+    'course plan',
+    'degree plan',
+    'graduation requirement',
+    'program requirement',
+    'next semester',
+    'semester classes',
+    'which classes',
+    'will this count',
+    'can i take this class',
+    'who is my advisor'
+  ].some(k => x.includes(k));
+}
+
+function questionLooksLikeSupportService(q) {
+  const x = lower(q);
+  return [
+    'trio',
+    'international student',
+    'international office',
+    'i-20',
+    'sevis',
+    'visa',
+    'opt',
+    'cpt',
+    'f1',
+    'tutoring',
+    'registrar',
+    'transcript',
+    'academic support',
+    'student support',
+    'disability services',
+    'accommodations',
+    'success center'
+  ].some(k => x.includes(k));
+}
+
+function isInternationalStudentStatement(q) {
+  const x = lower(q);
+  return [
+    'i am an international student',
+    'i\'m an international student',
+    'im an international student',
+    'i am international',
+    'i\'m international',
+    'im international'
+  ].some(k => x.includes(k));
+}
+
+function isTrioStatement(q) {
+  const x = lower(q);
+  return [
+    'i am a trio student',
+    'i\'m a trio student',
+    'im a trio student',
+    'i am in trio',
+    'i\'m in trio',
+    'im in trio'
+  ].some(k => x.includes(k));
+}
+
+function buildEncouragement(type, value = '') {
+  const programName = value || 'your program';
+
+  const programMessages = [
+    `That’s great — <strong>${escHtml(programName)}</strong> is now saved to your profile.<br>You’re building from the right starting point, and I’ll use that to guide you more accurately.`,
+    `Awesome — I’ve saved <strong>${escHtml(programName)}</strong> for you.<br>That helps me point you to the right support more clearly moving forward.`,
+    `Thanks for sharing that — I now have <strong>${escHtml(programName)}</strong> as your program.<br>You’re all set for more personalized guidance from here.`
+  ];
+
+  const internationalMessages = [
+    `Thanks for sharing that — I now know you’re an <strong>international student</strong>.<br>You’re navigating something big, and I’ll try to make the path feel clearer.`,
+    `Got it — I’ve noted that you’re an <strong>international student</strong>.<br>You already have a lot on your plate, so I’ll help keep things as clear and supportive as possible.`,
+    `Thank you for letting me know you’re an <strong>international student</strong>.<br>You’re doing something brave and exciting, and I’ll help point you to the right support when needed.`
+  ];
+
+  const trioMessages = [
+    `Thanks for letting me know you’re in <strong>TRIO</strong>.<br>That’s a strong support system to have, and I’ll keep that in mind when pointing you to resources.`,
+    `Got it — I’ve noted that you’re a <strong>TRIO student</strong>.<br>You’ve got valuable support behind you, and I’ll help connect the dots where I can.`,
+    `Thanks for sharing that — I now know you’re part of <strong>TRIO</strong>.<br>That gives us a helpful support path to work with moving forward.`
+  ];
+
+  if (type === 'international') {
+    return internationalMessages[Math.floor(Math.random() * internationalMessages.length)];
+  }
+
+  if (type === 'trio') {
+    return trioMessages[Math.floor(Math.random() * trioMessages.length)];
+  }
+
+  return programMessages[Math.floor(Math.random() * programMessages.length)];
+}
+
+function detectProgramFromMessage(q) {
+  if (!kbData || !kbData.programs) return '';
+
+  const x = lower(q);
+
+  const matches = (kbData.programs || []).filter(row => {
+    const collegeOk = !selectedCollege ||
+      lower(row.College || '').includes(lower(selectedCollege)) ||
+      lower(selectedCollege).includes(lower(row.College || ''));
+
+    if (!collegeOk) return false;
+
+    const programName = lower(row.ProgramName || '');
+    const department = lower(row.Department || '');
+    const keywords = lower(row.Keywords || '');
+
+    return (
+      (programName && x.includes(programName)) ||
+      (department && x.includes(department)) ||
+      (keywords && keywords.split(/[;,]/).some(k => k.trim() && x.includes(k.trim())))
+    );
+  });
+
+  if (!matches.length) return '';
+
+  matches.sort((a, b) => {
+    const aExact = lower(q).includes(lower(a.ProgramName || '')) ? 1 : 0;
+    const bExact = lower(q).includes(lower(b.ProgramName || '')) ? 1 : 0;
+    return bExact - aExact;
+  });
+
+  return matches[0].ProgramName || '';
+}
+
+function maybeCaptureShortProgramReply(text) {
+  if (selectedProgram) return '';
+
+  const x = lower(text);
+  const shortText = x.replace(/[.!?]/g, '').trim();
+
+  if (!shortText || shortText.length > 40) return '';
+
+  const direct = detectProgramFromMessage(shortText);
+  if (direct) return direct;
+
+  return '';
+}
+
+function score(row, query, roleValue = '') {
+  const q = lower(query);
+  if (!q) return 0;
+
+  const courseCode    = lower(row.CourseCode || row['CourseCode']);
+  const courseTitle   = lower(row.CourseTitle || row['CourseTitle']);
+  const textbookTitle = lower(row.TextbookTitle || row['TextbookTitle']);
+  const author        = lower(row.Author || row['Author']);
+  const edition       = lower(row.Edition || row['Edition']);
+  const publisher     = lower(row.Publisher || row['Publisher']);
+  const isbn          = lower(row.ISBN || row['ISBN']);
+  const vendor        = lower(row.Vendor || row['Vendor']);
+  const college       = lower(row.College || row['College']);
+  const term          = lower(row.Term || row['Term']);
+  const accessType    = lower(row.AccessType || row['AccessType']);
+  const notes         = lower(row.Notes || row['Notes']);
+  const audience      = lower(row.Audience || row['Audience']);
+  const category      = lower(row.Category || row['Category']);
+  const userSays      = lower(row['User Says']);
+  const triggerKw     = lower(row['Trigger Keywords'] || row['Keywords']);
+  const shortAnswer   = lower(row['Short Answer']);
+  const steps         = lower(row['Step-by-Step']);
+  const issueType     = lower(row['IssueType']);
+  const intent        = lower(row['Intent']);
+  const programName   = lower(row.ProgramName || row['ProgramName']);
+  const departmentName = lower(row.Department || row['Department']);
+  const serviceName   = lower(row.ServiceName || row['ServiceName']);
+  const categoryName  = lower(row.Category || row['Category']);
+  const advisorNotes  = lower(row.AdvisorNotes || row['AdvisorNotes']);
+  const primaryAdvisor = lower(row.PrimaryAdvisorName || row['PrimaryAdvisorName']);
+  const primaryContact = lower(row.PrimaryContactName || row['PrimaryContactName']);
+
+  const blob = [
+    courseCode, courseTitle, textbookTitle, author, edition, publisher, isbn, vendor,
+    college, term, accessType, notes, audience, category, userSays, triggerKw,
+    shortAnswer, steps, issueType, intent,
+    programName, departmentName, serviceName, categoryName, advisorNotes, primaryAdvisor, primaryContact
+  ].join(' ');
+
+  const tokens = q.split(/[\s,;:()\/]+/).map(t => t.trim()).filter(Boolean);
+  let s = 0;
+
+  if (isbn && isbn === q) s += 100;
+  if (courseCode && courseCode === q) s += 85;
+  if (courseTitle && courseTitle === q) s += 75;
+  if (textbookTitle && textbookTitle === q) s += 75;
+  if (author && author === q) s += 70;
+
+  if (courseCode && courseCode.includes(q)) s += 55;
+  if (courseTitle && courseTitle.includes(q)) s += 45;
+  if (textbookTitle && textbookTitle.includes(q)) s += 45;
+  if (author && author.includes(q)) s += 42;
+  if (publisher && publisher.includes(q)) s += 30;
+  if (vendor && vendor.includes(q)) s += 26;
+  if (college && college.includes(q)) s += 20;
+  if (term && term.includes(q)) s += 16;
+  if (blob.includes(q)) s += 8;
+
+  if (programName && programName.includes(q)) s += 45;
+  if (departmentName && departmentName.includes(q)) s += 30;
+  if (serviceName && serviceName.includes(q)) s += 45;
+  if (categoryName && categoryName.includes(q)) s += 22;
+  if (advisorNotes && advisorNotes.includes(q)) s += 20;
+  if (primaryAdvisor && primaryAdvisor.includes(q)) s += 18;
+  if (primaryContact && primaryContact.includes(q)) s += 18;
+
+  if (selectedProgram && programName && programName.includes(lower(selectedProgram))) s += 120;
+  if (selectedProgram && advisorNotes && advisorNotes.includes(lower(selectedProgram))) s += 18;
+
+  if (userFlags.internationalStudent && (serviceName.includes('international') || categoryName.includes('international') || notes.includes('international') || triggerKw.includes('international'))) {
+    s += 80;
+  }
+
+  if (userFlags.trioStudent && (serviceName.includes('trio') || categoryName.includes('academic support') || notes.includes('trio') || triggerKw.includes('trio'))) {
+    s += 55;
+  }
+
+  for (const token of tokens) {
+    if (token.length < 2) continue;
+
+    if (courseCode === token) s += 40;
+    if (isbn === token) s += 55;
+    if (author === token) s += 38;
+    if (college === token) s += 18;
+
+    if (courseCode.includes(token)) s += 22;
+    if (courseTitle.includes(token)) s += 16;
+    if (textbookTitle.includes(token)) s += 16;
+    if (author.includes(token)) s += 18;
+    if (publisher.includes(token)) s += 10;
+    if (vendor.includes(token)) s += 10;
+    if (college.includes(token)) s += 8;
+    if (term.includes(token)) s += 8;
+    if (notes.includes(token)) s += 4;
+    if (triggerKw.includes(token)) s += 7;
+    if (userSays.includes(token)) s += 6;
+    if (shortAnswer.includes(token)) s += 3;
+    if (steps.includes(token)) s += 2;
+
+    if (programName.includes(token)) s += 16;
+    if (departmentName.includes(token)) s += 12;
+    if (serviceName.includes(token)) s += 16;
+    if (categoryName.includes(token)) s += 10;
+    if (advisorNotes.includes(token)) s += 8;
+    if (primaryAdvisor.includes(token)) s += 8;
+    if (primaryContact.includes(token)) s += 8;
+  }
+
+  const textbookIntentWords = [
+    'textbook','book','books','isbn','author','edition','publisher',
+    'pearson','cengage','mcgraw','wiley','heintz','weygandt'
+  ];
+
+  if (textbookIntentWords.some(word => q.includes(word))) {
+    if (row.TextbookTitle || row.Author || row.ISBN) s += 20;
+  }
+
+  if (roleValue && audience && audience === roleValue.toLowerCase()) s += 10;
+  if ((row['Priority'] || '').toLowerCase() === 'high') s += 3;
+
+  return s;
+}
+
+function lookupTextbooks(query) {
+  if (!kbData || !kbData.textbooks) return [];
+
+  const rows = kbData.textbooks || [];
+  const entities = extractEntities(query);
+  const q = lower(query);
+
+  let results = rows
+    .map(row => ({ row, score: score(row, query, role) }))
+    .filter(x => x.score > 0);
+
+  results.forEach(x => {
+    const row = x.row;
+    const rowCourse = upperText(row.CourseCode);
+    const rowCollege = upperText(row.College);
+    const rowTerm = norm(row.Term);
+    const rowAuthor = lower(row.Author);
+    const rowCourseTitle = lower(row.CourseTitle);
+    const rowTextbookTitle = lower(row.TextbookTitle);
+
+    if (entities.courseCode && rowCourse === entities.courseCode) x.score += 120;
+    if (entities.college && rowCollege === entities.college) x.score += 50;
+    if (entities.term && rowTerm === entities.term) x.score += 40;
+    if (entities.author && rowAuthor.includes(lower(entities.author))) x.score += 70;
+
+    if (!entities.courseCode && q.length > 5) {
+      if (rowCourseTitle.includes(q)) x.score += 60;
+      if (rowTextbookTitle.includes(q)) x.score += 35;
+    }
+  });
+
+  if (questionLooksLikeAuthorSearch(query) && entities.author) {
+    const authorHits = results.filter(x =>
+      lower(x.row.Author).includes(lower(entities.author))
+    );
+    if (authorHits.length) results = authorHits;
+  }
+
+  if (entities.courseCode) {
+    const exactCourse = results.filter(x =>
+      upperText(x.row.CourseCode) === entities.courseCode
+    );
+    if (exactCourse.length) results = exactCourse;
+  }
+
+  if (entities.college) {
+    const byCollege = results.filter(x =>
+      upperText(x.row.College) === entities.college
+    );
+    if (byCollege.length) results = byCollege;
+  }
+
+  if (entities.term) {
+    const byTerm = results.filter(x =>
+      norm(x.row.Term) === entities.term
+    );
+    if (byTerm.length) results = byTerm;
+  }
+
+  results.sort((a, b) => b.score - a.score);
+
+  const seen = new Set();
+  const deduped = [];
+  for (const item of results) {
+    const k = [
+      item.row.Term,
+      item.row.College,
+      item.row.CourseCode,
+      item.row.TextbookTitle,
+      item.row.ISBN
+    ].join('|');
+
+    if (seen.has(k)) continue;
+    seen.add(k);
+    deduped.push(item.row);
+
+    if (deduped.length >= 8) break;
+  }
+
+  return deduped;
+}
+
+function lookupVendors(query) {
+  if (!kbData || !kbData.vendors) return [];
+
+  return (kbData.vendors || [])
+    .map(row => ({ row, score: score(row, query, role) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5)
+    .map(x => x.row);
+}
+
+function lookupFaq(query, currentRole) {
+  if (!kbData || !kbData.faq) return [];
+
+  const rows = (kbData.faq || []).filter(row => {
+    const a = lower(row['Audience']);
+    return a === lower(currentRole) || a === 'all';
+  });
+
+  return rows
+    .map(row => ({ row, score: score(row, query, currentRole) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 12)
+    .map(x => x.row);
+}
+
+function lookupPrograms(query) {
+  if (!kbData || !kbData.programs) return [];
+
+  let results = (kbData.programs || [])
+    .filter(row => {
+      const rowCollege = lower(row.College || '');
+      const selected = lower(selectedCollege || '');
+
+      const collegeMatch =
+        !selected ||
+        rowCollege === selected ||
+        rowCollege.includes(selected) ||
+        selected.includes(rowCollege);
+
+      const selectedProgramMatch =
+        !selectedProgram ||
+        lower(row.ProgramName || '').includes(lower(selectedProgram)) ||
+        lower(selectedProgram).includes(lower(row.ProgramName || ''));
+
+      return collegeMatch && selectedProgramMatch;
+    })
+    .map(row => ({ row, score: score(row, query, role) }))
+    .filter(x => x.score > 0);
+
+  if (!results.length && selectedProgram) {
+    results = (kbData.programs || [])
+      .filter(row => {
+        const rowCollege = lower(row.College || '');
+        const selected = lower(selectedCollege || '');
+
+        const collegeMatch =
+          !selected ||
+          rowCollege === selected ||
+          rowCollege.includes(selected) ||
+          selected.includes(rowCollege);
+
+        return collegeMatch;
+      })
+      .map(row => ({ row, score: score(row, query + ' ' + selectedProgram, role) }))
+      .filter(x => x.score > 0);
+  }
+
+  results.sort((a, b) => b.score - a.score);
+  return results.slice(0, 5).map(x => x.row);
+}
+
+function lookupSupportServices(query) {
+  if (!kbData || !kbData.services) return [];
+
+  let results = (kbData.services || [])
+    .filter(row => {
+      const rowCollege = lower(row.College || '');
+      const selected = lower(selectedCollege || '');
+      return !selected ||
+             rowCollege === selected ||
+             rowCollege.includes(selected) ||
+             selected.includes(rowCollege);
+    })
+    .map(row => ({ row, score: score(row, query, role) }))
+    .filter(x => x.score > 0);
+
+  results.sort((a, b) => b.score - a.score);
+  return results.slice(0, 5).map(x => x.row);
+}
+
+function buildSystemPrompt(currentRole, userQuestion) {
+  const staticContext = `
+=== ABOUT ICCOC ===
+The Iowa Community College Online Consortium (ICCOC) is a partnership of Iowa community colleges
+sharing online courses through Canvas LMS. Students enroll at a partner college and access courses
+through their home college portal (except Southwestern CC students who log in directly).
+ICCOC courses are NOT self-paced — they follow a set semester schedule.
+
+Partner Colleges: Eastern Iowa CC, Iowa Lakes CC, Northwest Iowa CC,
+Southeastern CC, Southwestern CC, Western Iowa Tech CC, North Iowa Area CC (Tier 3).
+
+Canvas Support Hotline (24/7): 844-214-6951
+General ICCOC questions: Tracy Sleep — tsleep@myiccoc.org | 319-759-0497
+`;
+
+  if (!kbData) {
+    return `You are the ICCOC Canvas Assistant — a friendly, knowledgeable guide for Canvas LMS users
+at Iowa Community College Online Consortium member colleges in Iowa.
+The user role is: ${currentRole}
+The user college is: ${selectedCollege || 'Not provided'}
+The user program is: ${selectedProgram || 'Not provided'}
+${staticContext}
+Answer with numbered steps. Use exact Canvas menu names. If unsure, direct to Canvas Support (844-214-6951).`;
+  }
+
+  const faqRows = lookupFaq(userQuestion, currentRole);
+  const vendorRows =
+    questionLooksLikeVendor(userQuestion) || questionLooksLikeTextbook(userQuestion)
+      ? lookupVendors(userQuestion)
+      : [];
+  const textbookRows =
+    questionLooksLikeTextbook(userQuestion)
+      ? lookupTextbooks(userQuestion)
+      : [];
+  const programRows =
+    questionLooksLikeAdvising(userQuestion)
+      ? lookupPrograms(userQuestion)
+      : [];
+  const serviceRows =
+    questionLooksLikeSupportService(userQuestion) || userFlags.internationalStudent || userFlags.trioStudent
+      ? lookupSupportServices(userQuestion)
+      : [];
+
+  let faqText = '';
+  if (faqRows.length) {
+    faqText = '\n=== FREQUENTLY ASKED QUESTIONS ===\n';
+    faqRows.forEach(row => {
+      faqText += `\nAudience: ${row['Audience'] || ''}\nQ: ${row['User Says'] || ''}\nKeywords: ${row['Trigger Keywords'] || row['Keywords'] || ''}\nShort Answer: ${row['Short Answer'] || ''}\nSteps: ${row['Step-by-Step'] || ''}\nEscalate when: ${row['Escalate When'] || ''}\nEscalation path: ${row['Escalation Path'] || ''}\n---`;
+    });
+  }
+
+  let vendorText = '';
+  if (vendorRows.length) {
+    vendorText = '\n=== VENDOR / TEXTBOOK SUPPORT ===\n';
+    vendorRows.forEach(row => {
+      vendorText += `\nVendor: ${row['Vendor'] || ''}\nIssue: ${row['IssueType'] || ''}\nAnswer: ${row['Short Answer'] || ''}\nSteps: ${row['Step-by-Step'] || ''}\nSupport: ${row['SupportLink'] || ''}\nEscalation: ${row['Escalation'] || ''}\n---`;
+    });
+  }
+
+  let textbookText = '';
+  if (textbookRows.length) {
+    textbookText = '\n=== EXACT TEXTBOOK MATCHES ===\n';
+    textbookRows.forEach(row => {
+      textbookText += `\nTerm: ${row['Term'] || ''}\nCollege: ${row['College'] || ''}\nCourse: ${row['CourseCode'] || ''} — ${row['CourseTitle'] || ''}\nTextbook: ${row['TextbookTitle'] || ''}\nAuthor: ${row['Author'] || ''}\nEdition: ${row['Edition'] || ''}\nPublisher: ${row['Publisher'] || ''}\nISBN: ${row['ISBN'] || ''}\nVendor: ${row['Vendor'] || ''}\nAccess Type: ${row['AccessType'] || ''}\nHow to Access: ${row['AccessInstructions'] || ''}\nNotes: ${row['Notes'] || ''}\nSupport: ${row['SupportLink'] || ''}\n---`;
+    });
+  }
+
+  let programText = '';
+  if (programRows.length) {
+    programText = '\n=== PROGRAM ADVISING CONTACTS ===\n';
+    programRows.forEach(row => {
+      programText += `
+College: ${row['College'] || ''}
+Program: ${row['ProgramName'] || ''}
+Department: ${row['Department'] || ''}
+Degree Level: ${row['DegreeLevel'] || ''}
+Primary Advisor: ${row['PrimaryAdvisorName'] || ''} | ${row['PrimaryAdvisorEmail'] || ''} | ${row['PrimaryAdvisorPhone'] || ''} | ${row['PrimaryAdvisorOffice'] || ''}
+Secondary Advisor: ${row['SecondaryAdvisorName'] || ''} | ${row['SecondaryAdvisorEmail'] || ''} | ${row['SecondaryAdvisorPhone'] || ''} | ${row['SecondaryAdvisorOffice'] || ''}
+Advisor Notes: ${row['AdvisorNotes'] || ''}
+Keywords: ${row['Keywords'] || ''}
+---`;
+    });
+  }
+
+  let serviceText = '';
+  if (serviceRows.length) {
+    serviceText = '\n=== STUDENT SUPPORT SERVICES ===\n';
+    serviceRows.forEach(row => {
+      serviceText += `
+College: ${row['College'] || ''}
+Service: ${row['ServiceName'] || ''}
+Category: ${row['Category'] || ''}
+Primary Contact: ${row['PrimaryContactName'] || ''} | ${row['PrimaryContactEmail'] || ''} | ${row['PrimaryContactPhone'] || ''}
+Office: ${row['OfficeLocation'] || ''}
+Notes: ${row['Notes'] || ''}
+Keywords: ${row['Keywords'] || ''}
+---`;
+    });
+  }
+
+  const contactRows = kbData.contacts || [];
+  let contactText = '';
+  if (contactRows.length) {
+    contactText = '\n=== ESCALATION CONTACTS ===\n';
+    contactRows.forEach(row => {
+      contactText += `${row['Org/Role'] || ''}: ${row['Contact'] || ''} | ${row['Email'] || ''} | ${row['Phone'] || ''} — When: ${row['When to Escalate'] || ''}\n`;
+    });
+  }
+
+  return `You are the ICCOC Canvas Assistant — friendly, knowledgeable, patient, and supportive.
+User role: ${currentRole}
+User college: ${selectedCollege || 'Not provided'}
+User program: ${selectedProgram || 'Not provided'}
+User is international student: ${userFlags.internationalStudent ? 'Yes' : 'No'}
+User is TRIO student: ${userFlags.trioStudent ? 'Yes' : 'No'}
+
+INSTRUCTIONS:
+- Answer using ONLY the knowledge below
+- Give numbered step-by-step directions only when steps are truly needed
+- Do NOT force numbered steps for simple routing/contact answers
+- Use bullet points only for sub-points or contact details
+- Use exact Canvas menu names when discussing Canvas
+- Warm, professional tone
+- Begin every answer with a short, friendly, human-sounding opener that fits the user's question
+- Keep the opener natural and brief
+- If the user asks who handles something, clearly route them
+- If the user asks what role is currently selected, answer directly from the saved User role
+- If the user asks what college is currently selected, answer directly from the saved User college
+- If the user asks what program is saved, answer directly from the saved User program
+- If the user has already provided a program, DO NOT ask for it again
+- Use the saved program to match and display the correct academic advisor
+
+- For textbook questions, prioritize the EXACT TEXTBOOK MATCHES section first
+- If exact textbook matches are present, do NOT say you lack textbook data
+- If the user asks by author, use the Author field from the textbook matches
+- If multiple textbook rows are shown, summarize the most relevant ones clearly
+
+- For academic advising, course selection, registration planning, full-time status, modality, and graduation-path questions, do NOT act like the student's academic advisor
+- Instead, give a short caution that these decisions should be confirmed with the correct advisor, then provide the best matching advisor contact from PROGRAM ADVISING CONTACTS
+- For TRIO, international student, registrar, tutoring, and similar support questions, provide the best matching office from STUDENT SUPPORT SERVICES
+- If both FAQ guidance and an advising/service contact are available, answer briefly first, then include the matching contact
+- Prefer the selected college when choosing advisor or service contacts
+- Never suggest that the bot can approve registration decisions
+- If the user asks an academic advising question and no program is known, ask for the student's program before giving advisor-specific guidance
+- Do not guess the student's program
+
+- When a matching program advisor is found, explicitly include the advisor's name, email, phone, and office if available
+- When a matching student support service is found, explicitly include the contact name, email, phone, and office if available
+- Do not only say "contact your advisor" or "contact student services" when matching details are present
+- If matching details are present, show them under a Contacts section
+
+- If you cannot answer, provide the right escalation contact with name, email, phone
+- Never make up steps or features
+- Structure answers using these section headings when relevant: Step-by-Step, When to Escalate, Contacts
+- Include a "Need help?" section only once if escalation is needed
+- Do not repeat section headings
+- Do not output raw markdown headings like # or ##
+- Do not output separators like ---
+
+${staticContext}
+${faqText}
+${vendorText}
+${textbookText}
+${programText}
+${serviceText}
+${contactText}`;
+}
+
+
+function getInternationalBoost() {
+  const lines = [
+    "You're on an exciting journey as an international student — and you're not alone in it.",
+    "You're building something global — let’s make sure you have the right support every step of the way.",
+    "Being an international student is a big step — I’m here to help you navigate it smoothly.",
+    "You're doing something bold by studying internationally — let’s get you the right support."
+  ];
+  return lines[Math.floor(Math.random() * lines.length)];
+}
+
+
 async function sendMessage() {
+  if (busy) return;
 
-  if (busy) return; /* Don't send while already waiting for a reply */
-
-  /* Prompt for API key if not yet entered */
-  if (!apiKey) {
-    addBotMsg('<p>Please enter your Anthropic API key in the banner above to get started.</p>');
+  if (onboardingStep !== 'done') {
+    addBotMsg('<p>Please choose your role and college first so I can guide you correctly.</p>');
     return;
   }
 
-  const inp  = document.getElementById('userInput');
-  const text = inp.value.trim();
-  if (!text) return; /* Don't send empty messages */
+  if (!apiKey) {
+    addBotMsg('<p>Please enter your Anthropic API key to get started.</p>');
+    return;
+  }
 
-  /* Clear input and hide chips */
+  const inp = document.getElementById('userInput');
+  const text = inp.value.trim();
+  if (!text) return;
+
+  const directProgram = detectProgramFromMessage(text);
+  const shortProgram = maybeCaptureShortProgramReply(text);
+  const detectedProgram = directProgram || shortProgram;
+
+  const mentionedInternational = isInternationalStudentStatement(text);
+  const mentionedTrio = isTrioStatement(text);
+
+  if (detectedProgram && !selectedProgram) {
+    selectedProgram = detectedProgram;
+    localStorage.setItem('iccoc_program', selectedProgram);
+
+    addUserMsg(text);
+    addBotMsg(`
+      <p>${buildEncouragement('program', selectedProgram)}</p>
+      <p><strong>Profile updated:</strong></p>
+      <ul>
+        <li>Role: ${escHtml(role)}</li>
+        <li>College: ${escHtml(selectedCollege)}</li>
+        <li>Program: ${escHtml(selectedProgram)}</li>
+      </ul>
+    `);
+
+    inp.value = '';
+    inp.style.height = 'auto';
+    updateContextBar();
+    showChips();
+    return;
+  }
+
+  if (mentionedInternational) {
+    userFlags.internationalStudent = true;
+    addUserMsg(text);
+    addBotMsg(`
+      <p>${buildEncouragement('international')}</p>
+      <p>I’ll keep that in mind when pointing you to the right office or support contact.</p>
+    `);
+    inp.value = '';
+    inp.style.height = 'auto';
+    showChips();
+    return;
+  }
+
+  if (mentionedTrio) {
+    userFlags.trioStudent = true;
+    addUserMsg(text);
+    addBotMsg(`
+      <p>${buildEncouragement('trio')}</p>
+      <p>I’ll keep that in mind when routing you to support services.</p>
+    `);
+    inp.value = '';
+    inp.style.height = 'auto';
+    showChips();
+    return;
+  }
+
+  const needsProgramForAdvising =
+    questionLooksLikeAdvising(text) &&
+    !selectedProgram &&
+    !questionLooksLikeSupportService(text);
+
+  if (needsProgramForAdvising) {
+    addUserMsg(text);
+    addBotMsg(`
+      <p>I can help point you to the right academic advisor.</p>
+      <p>What program are you in? For example: Nursing, Business, Information Technology, or another program.</p>
+    `);
+    inp.value = '';
+    inp.style.height = 'auto';
+    hideChips();
+    return;
+  }
+
   inp.value = '';
   inp.style.height = 'auto';
-  document.getElementById('chips').style.display = 'none';
+  hideChips();
 
-  /* Lock the UI while processing */
+  addUserMsg(text);
+
   busy = true;
   document.getElementById('sendBtn').disabled = true;
 
-  /* Tag the message with the current role so the AI knows who's asking */
-  const roleLabel  = role.charAt(0).toUpperCase() + role.slice(1);
-  const userContent = `[ROLE: ${roleLabel}]\n${text}`;
+  history.push({
+    role: 'user',
+    content: `[ROLE: ${role}]${selectedCollege ? `\n[COLLEGE: ${selectedCollege}]` : ''}${selectedProgram ? `\n[PROGRAM: ${selectedProgram}]` : ''}${userFlags.internationalStudent ? `\n[INTERNATIONAL_STUDENT: YES]` : ''}${userFlags.trioStudent ? `\n[TRIO_STUDENT: YES]` : ''}\n${text}`
+  });
 
-  /* Display the message and store it in conversation history */
-  addUserMsg(text);
-  history.push({ role: 'user', content: userContent });
   showTyping();
 
-  /* ── Call the Claude AI API ── */
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,                                /* Your saved API key     */
-        'anthropic-version': '2023-06-01',                  /* Required API version   */
-        'anthropic-dangerous-direct-browser-access': 'true' /* Allows browser-to-API  */
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model:      'claude-haiku-4-5-20251001', /* Haiku = fastest + most affordable model */
-        max_tokens: 1000,                        /* Maximum response length                 */
-        system:     SYSTEM_PROMPT,               /* Bot instructions + knowledge base       */
-        messages:   history                      /* Full conversation for memory/context    */
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: buildSystemPrompt(role, text),
+        messages: history
       })
     });
 
-    /* Handle API-level errors (e.g. wrong key, billing issue) */
     if (!res.ok) {
       const err = await res.json();
       throw new Error(err.error?.message || 'API error');
     }
 
-    /* Extract the reply text and display it */
-    const data  = await res.json();
-    const reply = data.content.map(c => c.text || '').join('');
-    history.push({ role: 'assistant', content: reply });
-    removeTyping();
-    addBotMsg(formatReply(reply));
+    const data = await res.json();
+	let reply = data.content.map(c => c.text || '').join('');
 
+	// 🔥 Detect international-related queries
+	const lowerText = text.toLowerCase();
+
+	const isInternationalQuery =
+	  lowerText.includes("international") ||
+	  lowerText.includes("visa") ||
+	  lowerText.includes("i-20") ||
+	  lowerText.includes("sevis") ||
+	  lowerText.includes("opt") ||
+	  lowerText.includes("cpt");
+
+	// 🔥 Inject encouragement
+	if (isInternationalQuery || userFlags.internationalStudent) {
+	  reply = getInternationalBoost() + "\n\n" + reply;
+	}
+
+	history.push({ role: 'assistant', content: reply });
+
+	removeTyping();
+	addBotMsg(formatReply(reply));
+    showChips();
   } catch (err) {
-    /* Show a friendly error message if something goes wrong */
     removeTyping();
-    addBotMsg(`<p><strong>Error:</strong> ${escHtml(err.message)}. Please check your API key or try again.</p>`);
+    addBotMsg(`<p><strong>Error:</strong> ${escHtml(err.message)}. Please check your API key and try again.</p>`);
   }
 
-  /* Unlock the UI */
   busy = false;
   document.getElementById('sendBtn').disabled = false;
-  inp.focus();
+  document.getElementById('userInput').focus();
+  updateContextBar();
 }
-
-/* ================================================================
-   APP FUNCTIONS — END
-   ================================================================ */
-
 </script>
-<!-- ============================================================
-     JAVASCRIPT SECTION — END
-     ============================================================ -->
-
 </body>
 </html>
