@@ -1756,28 +1756,6 @@ async function sendMessage() {
   const mentionedInternational = isInternationalStudentStatement(text);
   const mentionedTrio = isTrioStatement(text);
 
-  if (detectedProgram && !selectedProgram) {
-    selectedProgram = detectedProgram;
-    localStorage.setItem('iccoc_program', selectedProgram);
-
-    addUserMsg(text);
-    addBotMsg(`
-      <p>${buildEncouragement('program', selectedProgram)}</p>
-      <p><strong>Profile updated:</strong></p>
-      <ul>
-        <li>Role: ${escHtml(role)}</li>
-        <li>College: ${escHtml(selectedCollege)}</li>
-        <li>Program: ${escHtml(selectedProgram)}</li>
-      </ul>
-    `);
-
-    inp.value = '';
-    inp.style.height = 'auto';
-    updateContextBar();
-    showChips();
-    return;
-  }
-
   if (mentionedInternational) {
     userFlags.internationalStudent = true;
     addUserMsg(text);
@@ -1800,6 +1778,29 @@ async function sendMessage() {
     `);
     inp.value = '';
     inp.style.height = 'auto';
+    showChips();
+    return;
+  }
+
+  if (detectedProgram && detectedProgram !== selectedProgram && text.length < 40) {
+    selectedProgram = detectedProgram;
+    localStorage.setItem('iccoc_program', selectedProgram);
+
+    addUserMsg(text);
+    addBotMsg(`
+      <p>Nice — I’ve saved <strong>${escHtml(selectedProgram)}</strong> as your program.</p>
+      <p>I’ll tailor guidance to fit your path.</p>
+      <p><strong>Profile updated:</strong></p>
+      <ul>
+        <li>Role: ${escHtml(role)}</li>
+        <li>College: ${escHtml(selectedCollege)}</li>
+        <li>Program: ${escHtml(selectedProgram)}</li>
+      </ul>
+    `);
+
+    inp.value = '';
+    inp.style.height = 'auto';
+    updateContextBar();
     showChips();
     return;
   }
@@ -1860,28 +1861,25 @@ async function sendMessage() {
     }
 
     const data = await res.json();
-	let reply = data.content.map(c => c.text || '').join('');
+    let reply = data.content.map(c => c.text || '').join('');
 
-	// 🔥 Detect international-related queries
-	const lowerText = text.toLowerCase();
+    const lowerText = text.toLowerCase();
+    const isInternationalQuery =
+      lowerText.includes('international') ||
+      lowerText.includes('visa') ||
+      lowerText.includes('i-20') ||
+      lowerText.includes('sevis') ||
+      lowerText.includes('opt') ||
+      lowerText.includes('cpt');
 
-	const isInternationalQuery =
-	  lowerText.includes("international") ||
-	  lowerText.includes("visa") ||
-	  lowerText.includes("i-20") ||
-	  lowerText.includes("sevis") ||
-	  lowerText.includes("opt") ||
-	  lowerText.includes("cpt");
+    if (isInternationalQuery || userFlags.internationalStudent) {
+      reply = getInternationalBoost() + '\n\n' + reply;
+    }
 
-	// 🔥 Inject encouragement
-	if (isInternationalQuery || userFlags.internationalStudent) {
-	  reply = getInternationalBoost() + "\n\n" + reply;
-	}
+    history.push({ role: 'assistant', content: reply });
 
-	history.push({ role: 'assistant', content: reply });
-
-	removeTyping();
-	addBotMsg(formatReply(reply));
+    removeTyping();
+    addBotMsg(formatReply(reply));
     showChips();
   } catch (err) {
     removeTyping();
@@ -1893,6 +1891,7 @@ async function sendMessage() {
   document.getElementById('userInput').focus();
   updateContextBar();
 }
+
 </script>
 </body>
 </html>
