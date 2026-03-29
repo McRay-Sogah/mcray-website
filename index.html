@@ -831,6 +831,42 @@ function selectCollege(collegeName) {
   renderWelcomeFlow();
 }
 
+function getAssistantCapabilitiesLine() {
+  let parts = ['Canvas'];
+
+  if (kbData?.textbooks?.length) parts.push('textbooks');
+
+  // ✅ THIS IS WHERE YOUR NEW CODE GOES
+  if (role === 'Student') {
+    if (kbData?.programs?.length) parts.push('your advisor');
+    if (kbData?.services?.length) parts.push('student support');
+  }
+  else if (role === 'Instructor') {
+    parts.push('course tools');
+    parts.push('teaching support');
+  }
+  else if (role === 'Admin') {
+    parts.push('course management');
+    parts.push('account support');
+  }
+
+  if (selectedProgram && role === 'Student') {
+    parts = parts.map(p => p === 'your advisor' ? `${selectedProgram} advisor` : p);
+  }
+
+  if (parts.length === 1) {
+    return `Ask me anything about ${parts[0]}, and I’ll guide you step by step.`;
+  }
+
+  if (parts.length === 2) {
+    return `Ask me about ${parts[0]} and ${parts[1]}, and I’ll guide you step by step.`;
+  }
+
+  const last = parts.pop();
+  return `Ask me about ${parts.join(', ')}, and ${last} — I’ll help you find exactly what you need.`;
+}
+
+
 function renderWelcomeFlow() {
   const messages = document.getElementById('messages');
   messages.innerHTML = '';
@@ -867,7 +903,7 @@ function renderWelcomeFlow() {
 
     addBotMsg(`
       <p>Perfect — you’re set up as <strong>${role}</strong> from <strong>${escHtml(selectedCollege)}</strong>.</p>
-      <p>Ask me anything about Canvas, and I’ll guide you step by step.</p>
+      <p>${getAssistantCapabilitiesLine()}</p>
     `);
   }
 }
